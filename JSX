@@ -1,0 +1,1214 @@
+import { useState, useEffect, useRef } from “react”;
+
+// ===== DATA =====
+const FOOD_LIST = {
+“肉類”: [
+{ name: “鶏ささみ”, protein: 23.9, emoji: “🐔” },
+{ name: “鶏むね肉（皮なし）”, protein: 23.3, emoji: “🐔” },
+{ name: “鶏もも肉（皮なし）”, protein: 19.0, emoji: “🍗” },
+{ name: “牛もも肉”, protein: 21.3, emoji: “🥩” },
+{ name: “牛サーロイン”, protein: 17.4, emoji: “🥩” },
+{ name: “牛ヒレ”, protein: 20.5, emoji: “🥩” },
+{ name: “豚ヒレ”, protein: 22.2, emoji: “🐷” },
+{ name: “豚もも肉”, protein: 20.5, emoji: “🐷” },
+{ name: “豚ロース”, protein: 19.3, emoji: “🐷” },
+{ name: “豚ばら肉”, protein: 14.4, emoji: “🐷” },
+{ name: “羊肉（ロース）”, protein: 18.0, emoji: “🐑” },
+{ name: “馬肉”, protein: 20.1, emoji: “🐴” },
+{ name: “生ハム”, protein: 24.0, emoji: “🍖” },
+{ name: “ロースハム”, protein: 16.5, emoji: “🍖” },
+{ name: “ウインナー”, protein: 13.2, emoji: “🌭” },
+{ name: “ベーコン”, protein: 12.9, emoji: “🥓” },
+{ name: “焼き鳥（もも）”, protein: 16.0, emoji: “🍢” },
+{ name: “ローストビーフ”, protein: 21.7, emoji: “🥩” },
+{ name: “サラダチキン”, protein: 24.0, emoji: “🥗” },
+{ name: “レバー（豚）”, protein: 20.4, emoji: “🫀” },
+],
+“魚介類”: [
+{ name: “まぐろ（赤身）”, protein: 26.4, emoji: “🐟” },
+{ name: “かつお（春）”, protein: 25.8, emoji: “🐠” },
+{ name: “焼鮭”, protein: 24.3, emoji: “🐟” },
+{ name: “さば缶（水煮）”, protein: 20.9, emoji: “🐟” },
+{ name: “ぶり”, protein: 21.4, emoji: “🐟” },
+{ name: “さんま”, protein: 18.5, emoji: “🐡” },
+{ name: “あじ”, protein: 19.7, emoji: “🐡” },
+{ name: “めかじき”, protein: 19.0, emoji: “🐡” },
+{ name: “いわし”, protein: 19.2, emoji: “🐟” },
+{ name: “たい”, protein: 18.1, emoji: “🐠” },
+{ name: “えび（車えび）”, protein: 21.6, emoji: “🦐” },
+{ name: “いか”, protein: 18.1, emoji: “🦑” },
+{ name: “たこ”, protein: 16.4, emoji: “🐙” },
+{ name: “ほたて（生）”, protein: 13.5, emoji: “🐚” },
+{ name: “しらす干し”, protein: 40.5, emoji: “🐟” },
+{ name: “うなぎ蒲焼”, protein: 23.0, emoji: “🐍” },
+{ name: “あさり”, protein: 6.0, emoji: “🐚” },
+{ name: “しじみ”, protein: 7.5, emoji: “🐚” },
+{ name: “ツナ缶（油漬け）”, protein: 17.7, emoji: “🥫” },
+{ name: “たら”, protein: 17.6, emoji: “🐟” },
+],
+“卵・乳製品”: [
+{ name: “鶏卵（生）”, protein: 12.2, emoji: “🥚” },
+{ name: “卵白”, protein: 10.1, emoji: “🥚” },
+{ name: “卵黄”, protein: 16.1, emoji: “🥚” },
+{ name: “牛乳”, protein: 3.3, emoji: “🥛” },
+{ name: “ヨーグルト（無糖）”, protein: 3.6, emoji: “🫙” },
+{ name: “ギリシャヨーグルト”, protein: 10.0, emoji: “🫙” },
+{ name: “プロセスチーズ”, protein: 22.7, emoji: “🧀” },
+{ name: “カマンベールチーズ”, protein: 19.1, emoji: “🧀” },
+{ name: “クリームチーズ”, protein: 8.2, emoji: “🧀” },
+{ name: “モッツァレラチーズ”, protein: 18.4, emoji: “🧀” },
+{ name: “パルメザンチーズ”, protein: 44.0, emoji: “🧀” },
+{ name: “脱脂粉乳”, protein: 34.0, emoji: “🥛” },
+{ name: “生クリーム”, protein: 2.0, emoji: “🍦” },
+{ name: “プロテイン（粉末）”, protein: 75, emoji: “💪” },
+],
+“豆類”: [
+{ name: “納豆”, protein: 16.5, emoji: “🫘” },
+{ name: “木綿豆腐”, protein: 7.0, emoji: “🫙” },
+{ name: “絹ごし豆腐”, protein: 5.3, emoji: “🫙” },
+{ name: “豆乳”, protein: 3.6, emoji: “🥛” },
+{ name: “おから”, protein: 6.1, emoji: “🫘” },
+{ name: “厚揚げ”, protein: 10.7, emoji: “🍱” },
+{ name: “油揚げ”, protein: 18.6, emoji: “🍱” },
+{ name: “蒸し大豆”, protein: 16.0, emoji: “🫘” },
+{ name: “きな粉”, protein: 35.5, emoji: “🫘” },
+{ name: “高野豆腐（乾燥）”, protein: 50.2, emoji: “🫙” },
+{ name: “小豆（ゆで）”, protein: 7.0, emoji: “🫘” },
+],
+“穀物・麺類”: [
+{ name: “白米（炊飯後）”, protein: 2.5, emoji: “🍚” },
+{ name: “玄米（炊飯後）”, protein: 2.8, emoji: “🍚” },
+{ name: “食パン”, protein: 8.9, emoji: “🍞” },
+{ name: “パスタ（乾）”, protein: 13.0, emoji: “🍝” },
+{ name: “うどん（ゆで）”, protein: 2.6, emoji: “🍜” },
+{ name: “そば（ゆで）”, protein: 4.8, emoji: “🍜” },
+{ name: “オートミール”, protein: 13.7, emoji: “🥣” },
+{ name: “餅”, protein: 4.0, emoji: “🍡” },
+{ name: “中華麺（生）”, protein: 8.6, emoji: “🍜” },
+{ name: “ベーグル”, protein: 10.0, emoji: “🥯” },
+{ name: “クロワッサン”, protein: 7.9, emoji: “🥐” },
+],
+“野菜・果物・ナッツ”: [
+{ name: “ブロッコリー”, protein: 5.4, emoji: “🥦” },
+{ name: “枝豆”, protein: 11.7, emoji: “🌿” },
+{ name: “ほうれん草”, protein: 2.2, emoji: “🥬” },
+{ name: “アスパラガス”, protein: 2.6, emoji: “🌱” },
+{ name: “とうもろこし”, protein: 3.6, emoji: “🌽” },
+{ name: “アボカド”, protein: 2.5, emoji: “🥑” },
+{ name: “ジャガイモ”, protein: 1.8, emoji: “🥔” },
+{ name: “さつまいも”, protein: 1.2, emoji: “🍠” },
+{ name: “アーモンド”, protein: 19.6, emoji: “🌰” },
+{ name: “くるみ”, protein: 14.6, emoji: “🌰” },
+{ name: “ピーナッツ”, protein: 26.5, emoji: “🥜” },
+{ name: “カシューナッツ”, protein: 19.8, emoji: “🌰” },
+{ name: “ピスタチオ”, protein: 17.4, emoji: “🌰” },
+{ name: “バナナ”, protein: 1.1, emoji: “🍌” },
+],
+“料理・加工品”: [
+{ name: “牛丼”, protein: 5.5, emoji: “🍛” },
+{ name: “カレーライス”, protein: 4.5, emoji: “🍛” },
+{ name: “オムライス”, protein: 5.8, emoji: “🍳” },
+{ name: “親子丼”, protein: 7.0, emoji: “🍚” },
+{ name: “チャーハン”, protein: 6.0, emoji: “🍚” },
+{ name: “ハンバーグ”, protein: 13.0, emoji: “🍔” },
+{ name: “餃子”, protein: 6.4, emoji: “🥟” },
+{ name: “ちくわ”, protein: 12.2, emoji: “🍢” },
+{ name: “かまぼこ”, protein: 12.0, emoji: “🍣” },
+{ name: “唐揚げ”, protein: 14.0, emoji: “🍗” },
+],
+};
+
+const QUOTES = [
+“タンパク質がある、ゆえに我あり。”,
+“タンパク質を抱け。”,
+“賽は投げられた。そしてタンパク質は摂取された。”,
+“タンパク質は力なり。”,
+“筋肉は一日にして成らず。”,
+“我、タンパク質を食す。ゆえに我、肥大す。”,
+“筋肉は裏切らない。”,
+“叩け、さらば開かれん（バルクの扉が）。”,
+“タンパク質こそが、人生の目的である。”,
+“最大多数の最大タンパク質。”,
+“汝の筋肉を愛せよ。”,
+“考えるな、タンパク質を摂れ。”,
+“下を見るな。上を向いて懸垂しろ。”,
+“筋肉よ、これが停滞期だ。”,
+“筋肉に自由を、さもなくば死を。”,
+“私はタンパク質に関しては、いかなる妥協もしない。”,
+“健全なる精神は、健全なる筋肉に宿る。”,
+“もっと光を。もっとタンパク質を。”,
+“摂取すべきか、摂取せざるべきか、それが問題だ。”,
+“鳴かぬなら、食わせてみせようタンパク質。”,
+“鳴かぬなら、スクワットさせようホトトギス。”,
+“タンパク質の夜明けは近いぜよ。”,
+“敵は本能寺にあり、筋肉はジムにあり。”,
+“諸行無常。だが筋肉は不滅。”,
+“一粒のタンパク質にも、全宇宙が宿る。”,
+“案ずるより産むが易し。悩むより食うが易し。”,
+“百聞は一見に如かず。百論は一レップに如かず。”,
+“お前のタンパク質、俺が引き受ける。”,
+“諦めたら、そこでバルクアップ終了ですよ。”,
+“筋肉王に、俺はなる！”,
+“タンパク質は、まだある。”,
+“逃げちゃダメだ、レッグデイから。”,
+“背中の筋肉は、語る。”,
+“お前はもう、パンプアップしている。”,
+“真実はいつも一つ。タンパク質は常に必要。”,
+“月に代わって、筋肉痛よ！”,
+“愛とは、互いに見つめ合うことではなく、同じタンパク質を分かち合うことだ。”,
+“筋肉は最高のファッションである。”,
+“昨日の自分より、今日のタンパク質量。”,
+“タンパク質、それは甘美な毒（※ただし筋肉には良薬）。”,
+“失敗はタンパク質不足の元。”,
+“夢を見るなら、バルクした自分を夢見ろ。”,
+“タンパク質は、歩いてこない。だから歩いて買いに行く。”,
+“筋肉は嘘をつかない。”,
+“世界はタンパク質で回っている。”,
+“追い込んだ数だけ、強くなれるよ。”,
+“私の血にはタンパク質が流れている。”,
+“限界を超えた先に、新しいプロテインが待っている。”,
+“ささみを愛する者に、筋肉は微笑む。”,
+“シェイカーを振る音は、勝利への鼓動。”,
+“明日やろうは、カタボリック。”,
+“筋肉は沈黙の臓器、だがその形は雄弁だ。”,
+“幸福とは、タンパク質を消化することだ。”,
+“ダンベルは友だち、怖くないよ。”,
+“鏡の中の自分に、問いかけろ。「タンパク質、足りてるか？」”,
+“プロテインは、飲む点滴である。”,
+“スクワットは、全宇宙への敬意。”,
+“上腕二頭筋は、自己紹介代わり。”,
+“バルクは一瞬、筋肉は一生。”,
+“タンパク質を信じろ、自分を信じろ。”,
+“汗は筋肉の涙、プロテインは筋肉の笑顔。”,
+“食事もトレーニングの一環。”,
+“コンビニは、タンパク質の補給基地。”,
+“重いものを持ち上げる、ただそれだけの美学。”,
+“筋肉は、最高の貯金。”,
+“休息という名の、筋肉育成タイム。”,
+“肩にちっちゃい重機乗せてんのかい。”,
+“腹筋が割れているのではない、浮き出ているのだ。”,
+“デッドリフトは、大地への愛。”,
+“タンパク質は、裏切らない。”,
+“プロテインの粉は、魔法の粉。”,
+“胸板は、人生の厚み。”,
+“ベンチプレスは、魂の重み。”,
+“全てを捨てても、タンパク質だけは離すな。”,
+“今日もいいパンプ、ありがとう。”,
+“筋肉は、神が与えた最高の粘土。”,
+“血管の浮き沈みに、物語がある。”,
+“プロテインを飲む姿、それこそが芸術。”,
+“筋肉は、努力を可視化したもの。”,
+“広背筋は、空を飛ぶための翼。”,
+“筋肉の数だけ、幸せがある。”,
+“筋肉があるから、優しくなれる。”,
+“筋トレは、自分との対話。”,
+“タンパク質摂取、それは自分へのギフト。”,
+“筋肉、それは究極の自己責任。”,
+“この世のすべては、タンパク質でできている。”,
+];
+
+const TANPAKU_MESSAGES = [“ムキムキ〜！”, “たんぱくたんぱく〜！”, “食トレしてる？”, “ささみ食べた？”, “タンパク質補給！”];
+
+// ===== STORAGE HELPERS =====
+const STORAGE_KEY = “tanpaku_data_v1”;
+const loadData = () => {
+try {
+const saved = localStorage.getItem(STORAGE_KEY);
+return saved ? JSON.parse(saved) : { weight: null, records: {} };
+} catch { return { weight: null, records: {} }; }
+};
+const saveData = (data) => {
+try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch {}
+};
+
+const todayStr = () => new Date().toISOString().slice(0, 10);
+const formatTime = (iso) => {
+const d = new Date(iso);
+return `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
+};
+
+// ===== TANPAKU-KUN CHARACTER =====
+function TanpakuKun({ message, animate }) {
+return (
+<div style={{ display: “flex”, flexDirection: “column”, alignItems: “center”, gap: 4 }}>
+{/* Speech bubble */}
+<div style={{
+background: “white”,
+border: “2.5px solid #FF7A00”,
+borderRadius: 16,
+padding: “6px 14px”,
+fontSize: 13,
+fontFamily: “‘Noto Sans JP’, sans-serif”,
+color: “#FF7A00”,
+fontWeight: 700,
+position: “relative”,
+whiteSpace: “nowrap”,
+boxShadow: “0 2px 8px rgba(255,122,0,0.15)”,
+}}>
+{message}
+<div style={{
+position: “absolute”,
+bottom: -10,
+left: “50%”,
+transform: “translateX(-50%)”,
+width: 0,
+height: 0,
+borderLeft: “8px solid transparent”,
+borderRight: “8px solid transparent”,
+borderTop: “10px solid #FF7A00”,
+}} />
+<div style={{
+position: “absolute”,
+bottom: -7,
+left: “50%”,
+transform: “translateX(-50%)”,
+width: 0,
+height: 0,
+borderLeft: “7px solid transparent”,
+borderRight: “7px solid transparent”,
+borderTop: “9px solid white”,
+}} />
+</div>
+
+```
+  {/* Egg character */}
+  <svg width="72" height="88" viewBox="0 0 72 88" style={{
+    filter: "drop-shadow(0 4px 8px rgba(255,122,0,0.25))",
+    animation: animate ? "bounce 0.5s ease-in-out" : "float 3s ease-in-out infinite",
+  }}>
+    {/* Egg body */}
+    <ellipse cx="36" cy="50" rx="28" ry="34" fill="#FFF8F0" stroke="#FFD580" strokeWidth="2.5"/>
+    {/* Egg white highlight */}
+    <ellipse cx="26" cy="36" rx="8" ry="10" fill="white" opacity="0.6"/>
+    {/* Yolk */}
+    <circle cx="36" cy="52" r="16" fill="#FFB830"/>
+    <circle cx="36" cy="52" r="13" fill="#FFC840"/>
+    <circle cx="30" cy="47" r="4" fill="#FFD860" opacity="0.7"/>
+    {/* Eyes */}
+    <circle cx="30" cy="47" r="4" fill="white"/>
+    <circle cx="42" cy="47" r="4" fill="white"/>
+    <circle cx="31.5" cy="47.5" r="2.5" fill="#333"/>
+    <circle cx="43.5" cy="47.5" r="2.5" fill="#333"/>
+    <circle cx="32.5" cy="46.5" r="1" fill="white"/>
+    <circle cx="44.5" cy="46.5" r="1" fill="white"/>
+    {/* Smile */}
+    <path d="M28 57 Q36 64 44 57" stroke="#B85000" strokeWidth="2" fill="none" strokeLinecap="round"/>
+    {/* Tiny arms */}
+    <path d="M8 52 Q4 46 10 44" stroke="#FFB830" strokeWidth="3" fill="none" strokeLinecap="round"/>
+    <path d="M64 52 Q68 46 62 44" stroke="#FFB830" strokeWidth="3" fill="none" strokeLinecap="round"/>
+    {/* Blush */}
+    <ellipse cx="24" cy="55" rx="5" ry="3" fill="#FFB0A0" opacity="0.5"/>
+    <ellipse cx="48" cy="55" rx="5" ry="3" fill="#FFB0A0" opacity="0.5"/>
+  </svg>
+
+  <style>{`
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-8px); }
+    }
+    @keyframes bounce {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.15) rotate(-5deg); }
+    }
+  `}</style>
+</div>
+```
+
+);
+}
+
+// ===== CIRCULAR PROGRESS =====
+function CircleProgress({ value, max, color, size = 120, label, sub }) {
+const radius = (size - 16) / 2;
+const circumference = 2 * Math.PI * radius;
+const pct = Math.min(value / max, 1);
+const offset = circumference * (1 - pct);
+
+return (
+<div style={{ display: “flex”, flexDirection: “column”, alignItems: “center”, gap: 4 }}>
+<div style={{ position: “relative”, width: size, height: size }}>
+<svg width={size} height={size} style={{ transform: “rotate(-90deg)” }}>
+<circle cx={size/2} cy={size/2} r={radius} fill="none" stroke="#FFE8CC" strokeWidth={10}/>
+<circle
+cx={size/2} cy={size/2} r={radius} fill=“none”
+stroke={color} strokeWidth={10}
+strokeDasharray={circumference}
+strokeDashoffset={offset}
+strokeLinecap=“round”
+style={{ transition: “stroke-dashoffset 0.8s ease” }}
+/>
+</svg>
+<div style={{
+position: “absolute”, inset: 0,
+display: “flex”, flexDirection: “column”,
+alignItems: “center”, justifyContent: “center”,
+gap: 0,
+}}>
+<span style={{ fontSize: 22, fontWeight: 900, color: “#FF7A00”, fontFamily: “‘Noto Sans JP’, sans-serif”, lineHeight: 1 }}>
+{Math.round(value)}
+</span>
+<span style={{ fontSize: 11, color: “#AAA”, fontFamily: “‘Noto Sans JP’, sans-serif” }}>g</span>
+</div>
+</div>
+<div style={{ textAlign: “center” }}>
+<div style={{ fontSize: 12, fontWeight: 700, color: “#666”, fontFamily: “‘Noto Sans JP’, sans-serif” }}>{label}</div>
+{sub && <div style={{ fontSize: 11, color: “#AAA”, fontFamily: “‘Noto Sans JP’, sans-serif” }}>{sub}</div>}
+</div>
+</div>
+);
+}
+
+// ===== BAR GRAPH =====
+function BarGraph({ records, goal }) {
+const hours = Array.from({ length: 24 }, (_, i) => i);
+const byHour = {};
+(records || []).forEach(r => {
+const h = new Date(r.time).getHours();
+byHour[h] = (byHour[h] || 0) + r.protein;
+});
+const maxVal = Math.max(goal / 3, …Object.values(byHour), 1);
+
+return (
+<div style={{ background: “white”, borderRadius: 20, padding: “16px 12px”, boxShadow: “0 2px 12px rgba(255,122,0,0.08)” }}>
+<div style={{ fontSize: 13, fontWeight: 700, color: “#FF7A00”, marginBottom: 10, fontFamily: “‘Noto Sans JP’, sans-serif” }}>
+📊 時間別摂取量
+</div>
+<div style={{ display: “flex”, alignItems: “flex-end”, gap: 2, height: 60 }}>
+{hours.map(h => (
+<div key={h} style={{ flex: 1, display: “flex”, flexDirection: “column”, alignItems: “center” }}>
+<div style={{
+width: “100%”,
+height: byHour[h] ? `${(byHour[h] / maxVal) * 50}px` : “2px”,
+background: byHour[h] ? “linear-gradient(180deg, #FF9A30, #FF6A00)” : “#FFE8CC”,
+borderRadius: “3px 3px 0 0”,
+transition: “height 0.5s ease”,
+minHeight: 2,
+}}/>
+</div>
+))}
+</div>
+<div style={{ display: “flex”, justifyContent: “space-between”, marginTop: 4 }}>
+<span style={{ fontSize: 10, color: “#CCC”, fontFamily: “‘Noto Sans JP’, sans-serif” }}>0時</span>
+<span style={{ fontSize: 10, color: “#CCC”, fontFamily: “‘Noto Sans JP’, sans-serif” }}>12時</span>
+<span style={{ fontSize: 10, color: “#CCC”, fontFamily: “‘Noto Sans JP’, sans-serif” }}>23時</span>
+</div>
+</div>
+);
+}
+
+// ===== CALENDAR =====
+function CalendarView({ records, onSelectDay, selectedDay }) {
+const [viewDate, setViewDate] = useState(new Date());
+const year = viewDate.getFullYear();
+const month = viewDate.getMonth();
+
+const firstDay = new Date(year, month, 1).getDay();
+const daysInMonth = new Date(year, month + 1, 0).getDate();
+const today = new Date();
+
+const getDayStr = (d) => `${year}-${String(month+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+const getDayTotal = (d) => {
+const key = getDayStr(d);
+return (records[key] || []).reduce((s, r) => s + r.protein, 0);
+};
+
+const weeks = [];
+let week = Array(firstDay).fill(null);
+for (let d = 1; d <= daysInMonth; d++) {
+week.push(d);
+if (week.length === 7) { weeks.push(week); week = []; }
+}
+if (week.length) weeks.push([…week, …Array(7 - week.length).fill(null)]);
+
+const prevMonth = () => setViewDate(new Date(year, month - 1, 1));
+const nextMonth = () => setViewDate(new Date(year, month + 1, 1));
+
+return (
+<div style={{ background: “white”, borderRadius: 20, padding: 16, boxShadow: “0 2px 12px rgba(255,122,0,0.08)” }}>
+<div style={{ display: “flex”, alignItems: “center”, justifyContent: “space-between”, marginBottom: 12 }}>
+<button onClick={prevMonth} style={{ background: “none”, border: “none”, fontSize: 20, cursor: “pointer”, color: “#FF7A00” }}>‹</button>
+<span style={{ fontWeight: 900, fontSize: 16, color: “#FF7A00”, fontFamily: “‘Noto Sans JP’, sans-serif” }}>
+{year}年{month + 1}月
+</span>
+<button onClick={nextMonth} style={{ background: “none”, border: “none”, fontSize: 20, cursor: “pointer”, color: “#FF7A00” }}>›</button>
+</div>
+
+```
+  <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 2, marginBottom: 4 }}>
+    {["日","月","火","水","木","金","土"].map((d, i) => (
+      <div key={d} style={{ textAlign: "center", fontSize: 11, fontWeight: 700,
+        color: i === 0 ? "#FF6B6B" : i === 6 ? "#6B9FFF" : "#999",
+        fontFamily: "'Noto Sans JP', sans-serif", padding: "4px 0" }}>
+        {d}
+      </div>
+    ))}
+  </div>
+
+  {weeks.map((week, wi) => (
+    <div key={wi} style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 2 }}>
+      {week.map((d, di) => {
+        if (!d) return <div key={di} />;
+        const key = getDayStr(d);
+        const total = getDayTotal(d);
+        const isToday = d === today.getDate() && month === today.getMonth() && year === today.getFullYear();
+        const isSelected = selectedDay === key;
+        const hasFood = total > 0;
+
+        return (
+          <button key={di} onClick={() => onSelectDay(isSelected ? null : key)}
+            style={{
+              border: isSelected ? "2px solid #FF7A00" : isToday ? "2px solid #FFB830" : "2px solid transparent",
+              borderRadius: 10,
+              background: isSelected ? "#FFF0E0" : isToday ? "#FFFAF0" : hasFood ? "#FFF8F0" : "white",
+              padding: "4px 2px",
+              cursor: "pointer",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 1,
+              minHeight: 44,
+            }}>
+            <span style={{
+              fontSize: 13, fontWeight: isToday ? 900 : 600,
+              color: di === 0 ? "#FF6B6B" : di === 6 ? "#6B9FFF" : "#333",
+              fontFamily: "'Noto Sans JP', sans-serif",
+            }}>
+              {d}
+            </span>
+            {hasFood && (
+              <span style={{ fontSize: 9, color: "#FF7A00", fontWeight: 700, fontFamily: "'Noto Sans JP', sans-serif" }}>
+                {Math.round(total)}g
+              </span>
+            )}
+            {hasFood && (
+              <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#FF7A00" }}/>
+            )}
+          </button>
+        );
+      })}
+    </div>
+  ))}
+</div>
+```
+
+);
+}
+
+// ===== RECORD MODAL =====
+function RecordModal({ onClose, onSave }) {
+const [step, setStep] = useState(“choose”); // choose | food | manual
+const [selectedCategory, setSelectedCategory] = useState(null);
+const [selectedFood, setSelectedFood] = useState(null);
+const [grams, setGrams] = useState(100);
+const [manualGrams, setManualGrams] = useState(””);
+const [manualName, setManualName] = useState(””);
+
+const calcProtein = () => selectedFood ? (selectedFood.protein * grams / 100) : 0;
+
+const handleSave = () => {
+if (step === “food” && selectedFood) {
+onSave({ name: `${selectedFood.name}（${grams}g）`, protein: calcProtein() });
+} else if (step === “manual”) {
+const p = parseFloat(manualGrams);
+if (!isNaN(p) && p > 0) onSave({ name: manualName || “手動入力”, protein: p });
+}
+};
+
+return (
+<div style={{
+position: “fixed”, inset: 0,
+background: “rgba(0,0,0,0.4)”,
+display: “flex”, alignItems: “flex-end”,
+zIndex: 100,
+backdropFilter: “blur(4px)”,
+}} onClick={e => e.target === e.currentTarget && onClose()}>
+<div style={{
+background: “white”,
+borderRadius: “28px 28px 0 0”,
+width: “100%”,
+maxHeight: “85vh”,
+overflow: “hidden”,
+display: “flex”,
+flexDirection: “column”,
+animation: “slideUp 0.3s ease”,
+}}>
+<style>{`@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }`}</style>
+
+```
+    {/* Handle */}
+    <div style={{ display: "flex", justifyContent: "center", padding: "12px 0 4px" }}>
+      <div style={{ width: 40, height: 4, borderRadius: 2, background: "#DDD" }}/>
+    </div>
+
+    <div style={{ padding: "0 20px 20px", overflowY: "auto", flex: 1 }}>
+      <div style={{ fontSize: 18, fontWeight: 900, color: "#FF7A00", textAlign: "center", marginBottom: 20,
+        fontFamily: "'Noto Sans JP', sans-serif" }}>
+        🍽️ タンパク質を記録
+      </div>
+
+      {step === "choose" && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <button onClick={() => setStep("food")} style={{
+            background: "linear-gradient(135deg, #FF8C30, #FF5C00)",
+            border: "none", borderRadius: 16, padding: "18px",
+            color: "white", fontSize: 16, fontWeight: 900,
+            cursor: "pointer", fontFamily: "'Noto Sans JP', sans-serif",
+            boxShadow: "0 4px 16px rgba(255,92,0,0.3)",
+            display: "flex", alignItems: "center", gap: 12,
+          }}>
+            <span style={{ fontSize: 28 }}>🥗</span>
+            <div style={{ textAlign: "left" }}>
+              <div>食べ物から選ぶ</div>
+              <div style={{ fontSize: 12, opacity: 0.85 }}>絵文字から選択・量を入力</div>
+            </div>
+          </button>
+          <button onClick={() => setStep("manual")} style={{
+            background: "linear-gradient(135deg, #FFB830, #FF8C00)",
+            border: "none", borderRadius: 16, padding: "18px",
+            color: "white", fontSize: 16, fontWeight: 900,
+            cursor: "pointer", fontFamily: "'Noto Sans JP', sans-serif",
+            boxShadow: "0 4px 16px rgba(255,184,48,0.3)",
+            display: "flex", alignItems: "center", gap: 12,
+          }}>
+            <span style={{ fontSize: 28 }}>✏️</span>
+            <div style={{ textAlign: "left" }}>
+              <div>グラム数で直接入力</div>
+              <div style={{ fontSize: 12, opacity: 0.85 }}>タンパク質量をgで入力</div>
+            </div>
+          </button>
+        </div>
+      )}
+
+      {step === "food" && (
+        <div>
+          <button onClick={() => { setStep("choose"); setSelectedCategory(null); setSelectedFood(null); }}
+            style={{ background: "none", border: "none", color: "#FF7A00", cursor: "pointer",
+              fontSize: 14, marginBottom: 12, fontFamily: "'Noto Sans JP', sans-serif", fontWeight: 700 }}>
+            ← 戻る
+          </button>
+
+          {!selectedCategory ? (
+            <div>
+              <div style={{ fontSize: 13, color: "#999", marginBottom: 12, fontFamily: "'Noto Sans JP', sans-serif" }}>
+                カテゴリを選んでください
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                {Object.entries(FOOD_LIST).map(([cat, items]) => (
+                  <button key={cat} onClick={() => setSelectedCategory(cat)} style={{
+                    border: "2px solid #FFE0B0",
+                    borderRadius: 14, padding: "14px 10px",
+                    background: "white", cursor: "pointer",
+                    textAlign: "center", fontFamily: "'Noto Sans JP', sans-serif",
+                  }}>
+                    <div style={{ fontSize: 24, marginBottom: 4 }}>
+                      {items[0]?.emoji || "🍽️"}
+                    </div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: "#FF7A00" }}>{cat}</div>
+                    <div style={{ fontSize: 11, color: "#AAA" }}>{items.length}種類</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : !selectedFood ? (
+            <div>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+                <button onClick={() => setSelectedCategory(null)}
+                  style={{ background: "none", border: "none", color: "#FF7A00", cursor: "pointer",
+                    fontSize: 13, fontFamily: "'Noto Sans JP', sans-serif", fontWeight: 700 }}>
+                  ← {selectedCategory}
+                </button>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                {FOOD_LIST[selectedCategory].map(food => (
+                  <button key={food.name} onClick={() => setSelectedFood(food)} style={{
+                    border: "2px solid #FFE0B0",
+                    borderRadius: 14, padding: "12px 8px",
+                    background: "white", cursor: "pointer",
+                    textAlign: "center", fontFamily: "'Noto Sans JP', sans-serif",
+                    transition: "all 0.1s",
+                  }}>
+                    <div style={{ fontSize: 28, marginBottom: 4 }}>{food.emoji}</div>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: "#444", lineHeight: 1.3 }}>{food.name}</div>
+                    <div style={{ fontSize: 11, color: "#FF7A00", fontWeight: 900, marginTop: 2 }}>{food.protein}g/100g</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div>
+              <button onClick={() => setSelectedFood(null)}
+                style={{ background: "none", border: "none", color: "#FF7A00", cursor: "pointer",
+                  fontSize: 13, marginBottom: 12, fontFamily: "'Noto Sans JP', sans-serif", fontWeight: 700 }}>
+                ← 食べ物一覧
+              </button>
+
+              <div style={{
+                background: "linear-gradient(135deg, #FFF8F0, #FFF0E0)",
+                borderRadius: 20, padding: 20, textAlign: "center", marginBottom: 20,
+                border: "2px solid #FFD580",
+              }}>
+                <div style={{ fontSize: 48, marginBottom: 8 }}>{selectedFood.emoji}</div>
+                <div style={{ fontSize: 18, fontWeight: 900, color: "#FF7A00", fontFamily: "'Noto Sans JP', sans-serif" }}>
+                  {selectedFood.name}
+                </div>
+                <div style={{ fontSize: 13, color: "#888", fontFamily: "'Noto Sans JP', sans-serif" }}>
+                  {selectedFood.protein}g / 100g あたり
+                </div>
+              </div>
+
+              <div style={{ marginBottom: 20 }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "#666", marginBottom: 8,
+                  fontFamily: "'Noto Sans JP', sans-serif" }}>食べた量（g）</div>
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <button onClick={() => setGrams(Math.max(10, grams - 10))}
+                    style={{ width: 40, height: 40, borderRadius: 12, border: "2px solid #FFD580",
+                      background: "white", fontSize: 20, cursor: "pointer", color: "#FF7A00", fontWeight: 900 }}>
+                    −
+                  </button>
+                  <div style={{ flex: 1, textAlign: "center" }}>
+                    <input type="number" value={grams} onChange={e => setGrams(Math.max(1, parseInt(e.target.value) || 1))}
+                      style={{
+                        width: "100%", textAlign: "center", fontSize: 28, fontWeight: 900,
+                        border: "2px solid #FFD580", borderRadius: 12, padding: "8px 0",
+                        color: "#FF7A00", fontFamily: "'Noto Sans JP', sans-serif", outline: "none",
+                      }}/>
+                    <div style={{ fontSize: 11, color: "#AAA", fontFamily: "'Noto Sans JP', sans-serif" }}>グラム</div>
+                  </div>
+                  <button onClick={() => setGrams(grams + 10)}
+                    style={{ width: 40, height: 40, borderRadius: 12, border: "2px solid #FFD580",
+                      background: "white", fontSize: 20, cursor: "pointer", color: "#FF7A00", fontWeight: 900 }}>
+                    ＋
+                  </button>
+                </div>
+              </div>
+
+              <div style={{
+                background: "linear-gradient(135deg, #FF8C30, #FF5C00)",
+                borderRadius: 16, padding: 16, textAlign: "center", marginBottom: 20,
+                color: "white",
+              }}>
+                <div style={{ fontSize: 13, fontFamily: "'Noto Sans JP', sans-serif", opacity: 0.9 }}>タンパク質量</div>
+                <div style={{ fontSize: 36, fontWeight: 900, fontFamily: "'Noto Sans JP', sans-serif" }}>
+                  {calcProtein().toFixed(1)}g
+                </div>
+              </div>
+
+              <button onClick={handleSave} style={{
+                width: "100%", padding: "16px",
+                background: "linear-gradient(135deg, #FF8C30, #FF5C00)",
+                border: "none", borderRadius: 16, color: "white",
+                fontSize: 16, fontWeight: 900, cursor: "pointer",
+                fontFamily: "'Noto Sans JP', sans-serif",
+                boxShadow: "0 4px 16px rgba(255,92,0,0.3)",
+              }}>
+                💪 記録する！
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {step === "manual" && (
+        <div>
+          <button onClick={() => setStep("choose")}
+            style={{ background: "none", border: "none", color: "#FF7A00", cursor: "pointer",
+              fontSize: 14, marginBottom: 16, fontFamily: "'Noto Sans JP', sans-serif", fontWeight: 700 }}>
+            ← 戻る
+          </button>
+
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "#666", marginBottom: 8,
+              fontFamily: "'Noto Sans JP', sans-serif" }}>食品名（任意）</div>
+            <input
+              type="text" value={manualName}
+              onChange={e => setManualName(e.target.value)}
+              placeholder="例：プロテインバー"
+              style={{
+                width: "100%", border: "2px solid #FFD580", borderRadius: 12, padding: "12px 16px",
+                fontSize: 16, fontFamily: "'Noto Sans JP', sans-serif", outline: "none",
+                boxSizing: "border-box",
+              }}
+            />
+          </div>
+
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "#666", marginBottom: 8,
+              fontFamily: "'Noto Sans JP', sans-serif" }}>タンパク質量（g）</div>
+            <input
+              type="number" value={manualGrams}
+              onChange={e => setManualGrams(e.target.value)}
+              placeholder="例：20"
+              style={{
+                width: "100%", border: "2px solid #FFD580", borderRadius: 12, padding: "12px 16px",
+                fontSize: 24, fontWeight: 900, textAlign: "center",
+                fontFamily: "'Noto Sans JP', sans-serif", outline: "none", color: "#FF7A00",
+                boxSizing: "border-box",
+              }}
+            />
+          </div>
+
+          <button onClick={handleSave}
+            disabled={!manualGrams || parseFloat(manualGrams) <= 0}
+            style={{
+              width: "100%", padding: "16px",
+              background: manualGrams ? "linear-gradient(135deg, #FF8C30, #FF5C00)" : "#EEE",
+              border: "none", borderRadius: 16,
+              color: manualGrams ? "white" : "#AAA",
+              fontSize: 16, fontWeight: 900, cursor: manualGrams ? "pointer" : "not-allowed",
+              fontFamily: "'Noto Sans JP', sans-serif",
+              boxShadow: manualGrams ? "0 4px 16px rgba(255,92,0,0.3)" : "none",
+            }}>
+            💪 記録する！
+          </button>
+        </div>
+      )}
+    </div>
+  </div>
+</div>
+```
+
+);
+}
+
+// ===== WEIGHT SETUP =====
+function WeightSetup({ onSave }) {
+const [weight, setWeight] = useState(60);
+return (
+<div style={{
+minHeight: “100vh”,
+background: “linear-gradient(160deg, #FFF8F0 0%, #FFE8CC 100%)”,
+display: “flex”, flexDirection: “column”,
+alignItems: “center”, justifyContent: “center”,
+padding: 24,
+fontFamily: “‘Noto Sans JP’, sans-serif”,
+}}>
+<TanpakuKun message="はじめまして！" animate={false} />
+<div style={{ marginTop: 24, fontSize: 24, fontWeight: 900, color: “#FF7A00”, marginBottom: 8 }}>
+今日のたんぱく 🥚
+</div>
+<div style={{ fontSize: 14, color: “#888”, marginBottom: 32, textAlign: “center” }}>
+体重からあなたに必要な<br/>タンパク質量を計算します！
+</div>
+
+```
+  <div style={{
+    background: "white", borderRadius: 24, padding: 28,
+    width: "100%", maxWidth: 320,
+    boxShadow: "0 8px 32px rgba(255,122,0,0.15)",
+  }}>
+    <div style={{ fontSize: 15, fontWeight: 700, color: "#666", marginBottom: 16, textAlign: "center" }}>
+      体重を入力してください
+    </div>
+    <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+      <button onClick={() => setWeight(Math.max(30, weight - 1))}
+        style={{ width: 48, height: 48, borderRadius: 14, border: "2px solid #FFD580",
+          background: "white", fontSize: 22, cursor: "pointer", color: "#FF7A00", fontWeight: 900 }}>
+        −
+      </button>
+      <div style={{ flex: 1, textAlign: "center" }}>
+        <div style={{ fontSize: 48, fontWeight: 900, color: "#FF7A00" }}>{weight}</div>
+        <div style={{ fontSize: 14, color: "#AAA" }}>kg</div>
+      </div>
+      <button onClick={() => setWeight(Math.min(200, weight + 1))}
+        style={{ width: 48, height: 48, borderRadius: 14, border: "2px solid #FFD580",
+          background: "white", fontSize: 22, cursor: "pointer", color: "#FF7A00", fontWeight: 900 }}>
+        ＋
+      </button>
+    </div>
+    <input type="range" min={30} max={200} value={weight}
+      onChange={e => setWeight(parseInt(e.target.value))}
+      style={{ width: "100%", accentColor: "#FF7A00", marginBottom: 16 }}
+    />
+    <div style={{
+      background: "#FFF8F0", borderRadius: 14, padding: 14, marginBottom: 20,
+      border: "2px solid #FFE0B0", textAlign: "center",
+    }}>
+      <div style={{ fontSize: 13, color: "#888" }}>目標タンパク質量（体重×1.6g）</div>
+      <div style={{ fontSize: 28, fontWeight: 900, color: "#FF7A00" }}>{Math.round(weight * 1.6)}g</div>
+      <div style={{ fontSize: 11, color: "#AAA" }}>/ 1日</div>
+    </div>
+    <button onClick={() => onSave(weight)} style={{
+      width: "100%", padding: "16px",
+      background: "linear-gradient(135deg, #FF8C30, #FF5C00)",
+      border: "none", borderRadius: 16, color: "white",
+      fontSize: 16, fontWeight: 900, cursor: "pointer",
+      boxShadow: "0 4px 16px rgba(255,92,0,0.3)",
+    }}>
+      はじめる！💪
+    </button>
+  </div>
+</div>
+```
+
+);
+}
+
+// ===== QUOTE MODAL =====
+function QuoteModal({ quote, onClose }) {
+return (
+<div style={{
+position: “fixed”, inset: 0,
+background: “rgba(0,0,0,0.5)”,
+display: “flex”, alignItems: “center”, justifyContent: “center”,
+zIndex: 200, padding: 24,
+}} onClick={onClose}>
+<div style={{
+background: “white”, borderRadius: 28, padding: 32,
+maxWidth: 320, width: “100%”,
+textAlign: “center”,
+animation: “popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)”,
+boxShadow: “0 20px 60px rgba(0,0,0,0.2)”,
+}}>
+<style>{`@keyframes popIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }`}</style>
+<div style={{ fontSize: 48, marginBottom: 12 }}>💪</div>
+<div style={{ fontSize: 14, color: “#888”, marginBottom: 12, fontFamily: “‘Noto Sans JP’, sans-serif” }}>
+今日の名言
+</div>
+<div style={{
+fontSize: 17, fontWeight: 900, color: “#FF7A00”, lineHeight: 1.6,
+fontFamily: “‘Noto Sans JP’, sans-serif”,
+}}>
+{quote}
+</div>
+<button onClick={onClose} style={{
+marginTop: 24, padding: “12px 32px”,
+background: “linear-gradient(135deg, #FF8C30, #FF5C00)”,
+border: “none”, borderRadius: 14, color: “white”,
+fontSize: 14, fontWeight: 900, cursor: “pointer”,
+fontFamily: “‘Noto Sans JP’, sans-serif”,
+}}>
+よし、やるぞ！
+</button>
+</div>
+</div>
+);
+}
+
+// ===== MAIN APP =====
+export default function App() {
+const [appData, setAppData] = useState(() => loadData());
+const [page, setPage] = useState(“home”); // home | record | calendar
+const [showRecordModal, setShowRecordModal] = useState(false);
+const [showQuote, setShowQuote] = useState(null);
+const [tanpakuMsg, setTanpakuMsg] = useState(0);
+const [tanpakuAnim, setTanpakuAnim] = useState(false);
+const [selectedDay, setSelectedDay] = useState(null);
+
+useEffect(() => {
+saveData(appData);
+}, [appData]);
+
+useEffect(() => {
+const interval = setInterval(() => {
+setTanpakuMsg(m => (m + 1) % TANPAKU_MESSAGES.length);
+}, 3000);
+return () => clearInterval(interval);
+}, []);
+
+if (!appData.weight) {
+return <WeightSetup onSave={w => setAppData(d => ({ …d, weight: w }))} />;
+}
+
+const today = todayStr();
+const todayRecords = appData.records[today] || [];
+const todayTotal = todayRecords.reduce((s, r) => s + r.protein, 0);
+const goal = Math.round(appData.weight * 1.6);
+const remaining = Math.max(0, goal - todayTotal);
+const pct = Math.min(todayTotal / goal, 1);
+
+const handleSaveRecord = (record) => {
+const newRecord = { …record, time: new Date().toISOString(), id: Date.now() };
+setAppData(d => {
+const dayRecords = […(d.records[today] || []), newRecord];
+return { …d, records: { …d.records, [today]: dayRecords } };
+});
+setShowRecordModal(false);
+setTanpakuAnim(true);
+setTimeout(() => setTanpakuAnim(false), 600);
+const quote = QUOTES[Math.floor(Math.random() * QUOTES.length)];
+setTimeout(() => setShowQuote(quote), 400);
+};
+
+const handleDeleteRecord = (id) => {
+setAppData(d => {
+const dayRecords = (d.records[today] || []).filter(r => r.id !== id);
+return { …d, records: { …d.records, [today]: dayRecords } };
+});
+};
+
+const selectedDayRecords = selectedDay ? (appData.records[selectedDay] || []) : [];
+const selectedDayTotal = selectedDayRecords.reduce((s, r) => s + r.protein, 0);
+
+return (
+<div style={{
+minHeight: “100vh”,
+background: “linear-gradient(160deg, #FFF8F0 0%, #FFE8CC 100%)”,
+maxWidth: 430,
+margin: “0 auto”,
+fontFamily: “‘Noto Sans JP’, sans-serif”,
+position: “relative”,
+paddingBottom: 100,
+}}>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&family=Kosugi+Maru&display=swap" rel="stylesheet"/>
+
+```
+  {/* HOME PAGE */}
+  {page === "home" && (
+    <div style={{ padding: "20px 20px 0" }}>
+      {/* Header */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+        <div>
+          <div style={{ fontSize: 22, fontWeight: 900, color: "#FF7A00", fontFamily: "'Kosugi Maru', sans-serif" }}>
+            今日のたんぱく🥚
+          </div>
+          <div style={{ fontSize: 12, color: "#AAA" }}>
+            {new Date().toLocaleDateString("ja-JP", { month: "long", day: "numeric", weekday: "short" })}
+          </div>
+        </div>
+        <button onClick={() => setAppData(d => ({ ...d, weight: null }))}
+          style={{ background: "#FFF0E0", border: "2px solid #FFD580", borderRadius: 12,
+            padding: "6px 12px", fontSize: 12, color: "#FF7A00", cursor: "pointer", fontWeight: 700 }}>
+          ⚙️ {appData.weight}kg
+        </button>
+      </div>
+
+      {/* Tanpaku-kun */}
+      <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
+        <TanpakuKun message={TANPAKU_MESSAGES[tanpakuMsg]} animate={tanpakuAnim} />
+      </div>
+
+      {/* Main Progress */}
+      <div style={{
+        background: "white", borderRadius: 24, padding: 20,
+        boxShadow: "0 4px 20px rgba(255,122,0,0.12)", marginBottom: 16,
+      }}>
+        {/* Big progress bar */}
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 8 }}>
+            <div>
+              <span style={{ fontSize: 38, fontWeight: 900, color: "#FF7A00" }}>{Math.round(todayTotal)}</span>
+              <span style={{ fontSize: 16, color: "#AAA", marginLeft: 2 }}>g</span>
+            </div>
+            <div style={{ textAlign: "right" }}>
+              <div style={{ fontSize: 12, color: "#AAA" }}>目標</div>
+              <div style={{ fontSize: 20, fontWeight: 900, color: "#FFB830" }}>{goal}g</div>
+            </div>
+          </div>
+          <div style={{ background: "#FFE8CC", borderRadius: 12, height: 16, overflow: "hidden" }}>
+            <div style={{
+              height: "100%",
+              width: `${pct * 100}%`,
+              background: pct >= 1
+                ? "linear-gradient(90deg, #4CAF50, #2E7D32)"
+                : "linear-gradient(90deg, #FF8C30, #FF5C00)",
+              borderRadius: 12,
+              transition: "width 0.8s ease",
+              position: "relative",
+              overflow: "hidden",
+            }}>
+              <div style={{
+                position: "absolute", inset: 0,
+                background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent)",
+                animation: "shimmer 2s infinite",
+              }}/>
+            </div>
+          </div>
+          <style>{`@keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }`}</style>
+        </div>
+
+        {/* Circle stats */}
+        <div style={{ display: "flex", justifyContent: "space-around" }}>
+          <CircleProgress value={todayTotal} max={goal} color="#FF7A00" label="摂取済み" sub={`目標 ${goal}g`} />
+          <CircleProgress value={remaining} max={goal} color="#FFB830" label="残り必要量" sub={remaining === 0 ? "🎉 達成！" : `あと ${Math.round(remaining)}g`} />
+        </div>
+      </div>
+
+      {/* Bar graph */}
+      <div style={{ marginBottom: 16 }}>
+        <BarGraph records={todayRecords} goal={goal} />
+      </div>
+
+      {/* Today's records */}
+      <div style={{
+        background: "white", borderRadius: 20, padding: 16,
+        boxShadow: "0 2px 12px rgba(255,122,0,0.08)", marginBottom: 16,
+      }}>
+        <div style={{ fontSize: 14, fontWeight: 700, color: "#FF7A00", marginBottom: 12 }}>
+          📋 今日の記録
+        </div>
+        {todayRecords.length === 0 ? (
+          <div style={{ textAlign: "center", color: "#CCC", padding: "16px 0", fontSize: 14 }}>
+            まだ記録がありません<br/>
+            <span style={{ fontSize: 24 }}>🥚</span>
+          </div>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {[...todayRecords].reverse().map(r => (
+              <div key={r.id} style={{
+                display: "flex", alignItems: "center", justifyContent: "space-between",
+                background: "#FFF8F0", borderRadius: 12, padding: "10px 14px",
+              }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <div style={{
+                    width: 8, height: 8, borderRadius: "50%",
+                    background: "linear-gradient(135deg, #FF8C30, #FF5C00)",
+                  }}/>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "#444" }}>{r.name}</div>
+                    <div style={{ fontSize: 11, color: "#AAA" }}>{formatTime(r.time)}</div>
+                  </div>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span style={{ fontSize: 15, fontWeight: 900, color: "#FF7A00" }}>
+                    +{r.protein.toFixed(1)}g
+                  </span>
+                  <button onClick={() => handleDeleteRecord(r.id)}
+                    style={{ background: "none", border: "none", color: "#DDD", cursor: "pointer",
+                      fontSize: 16, padding: "0 4px" }}>
+                    ×
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Achievement badge */}
+      {pct >= 1 && (
+        <div style={{
+          background: "linear-gradient(135deg, #4CAF50, #2E7D32)",
+          borderRadius: 20, padding: "16px 20px", textAlign: "center",
+          color: "white", marginBottom: 16,
+          boxShadow: "0 4px 16px rgba(76,175,80,0.3)",
+          animation: "popIn 0.5s ease",
+        }}>
+          <div style={{ fontSize: 32, marginBottom: 4 }}>🎉</div>
+          <div style={{ fontSize: 18, fontWeight: 900 }}>目標達成！</div>
+          <div style={{ fontSize: 13, opacity: 0.9 }}>今日もよく頑張りました！</div>
+        </div>
+      )}
+    </div>
+  )}
+
+  {/* CALENDAR PAGE */}
+  {page === "calendar" && (
+    <div style={{ padding: "20px" }}>
+      <div style={{ fontSize: 20, fontWeight: 900, color: "#FF7A00", marginBottom: 16,
+        fontFamily: "'Kosugi Maru', sans-serif" }}>
+        📅 カレンダー
+      </div>
+      <CalendarView
+        records={appData.records}
+        selectedDay={selectedDay}
+        onSelectDay={setSelectedDay}
+      />
+
+      {/* Selected day detail */}
+      {selectedDay && (
+        <div style={{
+          background: "white", borderRadius: 20, padding: 16,
+          boxShadow: "0 2px 12px rgba(255,122,0,0.08)", marginTop: 16,
+        }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: "#FF7A00", marginBottom: 4 }}>
+            {selectedDay.replace(/-/g, "/")} の記録
+          </div>
+          <div style={{ fontSize: 22, fontWeight: 900, color: "#FF7A00", marginBottom: 12 }}>
+            合計 {Math.round(selectedDayTotal)}g
+          </div>
+          {selectedDayRecords.length === 0 ? (
+            <div style={{ color: "#CCC", fontSize: 13, textAlign: "center", padding: "12px 0" }}>
+              記録なし
+            </div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {selectedDayRecords.map(r => (
+                <div key={r.id} style={{
+                  display: "flex", justifyContent: "space-between", alignItems: "center",
+                  background: "#FFF8F0", borderRadius: 12, padding: "10px 14px",
+                }}>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "#444" }}>{r.name}</div>
+                    <div style={{ fontSize: 11, color: "#AAA" }}>{formatTime(r.time)}</div>
+                  </div>
+                  <span style={{ fontSize: 15, fontWeight: 900, color: "#FF7A00" }}>
+                    {r.protein.toFixed(1)}g
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )}
+
+  {/* BOTTOM NAV */}
+  <div style={{
+    position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)",
+    width: "100%", maxWidth: 430,
+    background: "white",
+    borderTop: "1px solid #FFE0B0",
+    display: "flex", alignItems: "center", justifyContent: "space-around",
+    padding: "8px 0 20px",
+    boxShadow: "0 -4px 20px rgba(255,122,0,0.1)",
+  }}>
+    <button onClick={() => setPage("home")} style={{
+      background: "none", border: "none", cursor: "pointer",
+      display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
+      opacity: page === "home" ? 1 : 0.4,
+    }}>
+      <span style={{ fontSize: 22 }}>🏠</span>
+      <span style={{ fontSize: 10, color: "#FF7A00", fontWeight: 700 }}>ホーム</span>
+    </button>
+
+    {/* Big center button */}
+    <button
+      onClick={() => setShowRecordModal(true)}
+      style={{
+        width: 72, height: 72,
+        borderRadius: "50%",
+        background: "linear-gradient(135deg, #FF8C30, #FF5C00)",
+        border: "4px solid white",
+        boxShadow: "0 6px 24px rgba(255,92,0,0.4)",
+        cursor: "pointer",
+        display: "flex", flexDirection: "column",
+        alignItems: "center", justifyContent: "center",
+        marginTop: -24,
+        transition: "transform 0.15s ease",
+        fontFamily: "'Kosugi Maru', sans-serif",
+      }}
+      onMouseDown={e => e.currentTarget.style.transform = "scale(0.92)"}
+      onMouseUp={e => e.currentTarget.style.transform = "scale(1)"}
+      onTouchStart={e => e.currentTarget.style.transform = "scale(0.92)"}
+      onTouchEnd={e => e.currentTarget.style.transform = "scale(1)"}
+    >
+      <span style={{ fontSize: 28 }}>🥚</span>
+      <span style={{ fontSize: 11, color: "white", fontWeight: 900, marginTop: -2,
+        fontFamily: "'Kosugi Maru', sans-serif" }}>
+        たんぱく
+      </span>
+    </button>
+
+    <button onClick={() => setPage("calendar")} style={{
+      background: "none", border: "none", cursor: "pointer",
+      display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
+      opacity: page === "calendar" ? 1 : 0.4,
+    }}>
+      <span style={{ fontSize: 22 }}>📅</span>
+      <span style={{ fontSize: 10, color: "#FF7A00", fontWeight: 700 }}>カレンダー</span>
+    </button>
+  </div>
+
+  {/* Modals */}
+  {showRecordModal && (
+    <RecordModal onClose={() => setShowRecordModal(false)} onSave={handleSaveRecord} />
+  )}
+  {showQuote && (
+    <QuoteModal quote={showQuote} onClose={() => setShowQuote(null)} />
+  )}
+</div>
+```
+
+);
+}
