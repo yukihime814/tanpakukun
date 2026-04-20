@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="今日のたんぱく" />
+  <title>今日のたんぱく 🥚</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&family=Kosugi+Maru&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      background: linear-gradient(160deg, #FFF8F0 0%, #FFE8CC 100%);
+      min-height: 100vh;
+      min-height: 100dvh;
+    }
+    #app {
+      max-width: 430px;
+      margin: 0 auto;
+      min-height: 100vh;
+      min-height: 100dvh;
+      position: relative;
+    }
+    button { font-family: 'Noto Sans JP', sans-serif; cursor: pointer; }
+    input  { font-family: 'Noto Sans JP', sans-serif; }
+
+```
+/* ===== PAGES ===== */
+.page { display: none; padding: 20px 20px 110px; }
+.page.active { display: block; }
+
+/* ===== BOTTOM NAV ===== */
+#bottom-nav {
+  position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+  width: 100%; max-width: 430px;
+  background: white;
+  border-top: 1px solid #FFE0B0;
+  display: flex; align-items: center; justify-content: space-around;
+  padding: 8px 0 20px;
+  padding-bottom: max(20px, env(safe-area-inset-bottom));
+  box-shadow: 0 -4px 20px rgba(255,122,0,0.1);
+  z-index: 50;
+}
+.nav-btn {
+  background: none; border: none;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  transition: opacity 0.2s;
+}
+.nav-btn span.icon { font-size: 22px; }
+.nav-btn span.label { font-size: 10px; color: #FF7A00; font-weight: 700; }
+.nav-btn.inactive { opacity: 0.35; }
+
+#center-btn {
+  width: 72px; height: 72px; border-radius: 50%;
+  background: linear-gradient(135deg, #FF8C30, #FF5C00);
+  border: 4px solid white;
+  box-shadow: 0 6px 24px rgba(255,92,0,0.4);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  margin-top: -24px;
+  transition: transform 0.12s ease;
+  font-family: 'Kosugi Maru', sans-serif;
+}
+#center-btn:active { transform: scale(0.92); }
+#center-btn .btn-egg { font-size: 26px; line-height: 1; }
+#center-btn .btn-label { font-size: 11px; color: white; font-weight: 900; font-family: 'Kosugi Maru', sans-serif; margin-top: -2px; }
+
+/* ===== CARDS ===== */
+.card {
+  background: white; border-radius: 20px;
+  padding: 16px; margin-bottom: 16px;
+  box-shadow: 0 2px 12px rgba(255,122,0,0.08);
+}
+.card-title { font-size: 13px; font-weight: 700; color: #FF7A00; margin-bottom: 10px; }
+
+/* ===== PROGRESS BAR ===== */
+.progress-track {
+  background: #FFE8CC; border-radius: 12px; height: 16px; overflow: hidden;
+}
+.progress-fill {
+  height: 100%; border-radius: 12px;
+  background: linear-gradient(90deg, #FF8C30, #FF5C00);
+  transition: width 0.8s ease;
+  position: relative; overflow: hidden;
+}
+.progress-fill.done { background: linear-gradient(90deg, #4CAF50, #2E7D32); }
+.shimmer {
+  position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  animation: shimmer 2s infinite;
+}
+@keyframes shimmer { 0%{transform:translateX(-100%)} 100%{transform:translateX(100%)} }
+
+/* ===== CIRCLES ===== */
+.circles-row { display: flex; justify-content: space-around; margin-top: 8px; }
+.circle-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.circle-wrap svg { display: block; }
+.circle-inner {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.circle-val { font-size: 22px; font-weight: 900; color: #FF7A00; line-height: 1; }
+.circle-unit { font-size: 11px; color: #AAA; }
+.circle-label { font-size: 12px; font-weight: 700; color: #666; text-align: center; }
+.circle-sub { font-size: 11px; color: #AAA; text-align: center; }
+
+/* ===== BAR GRAPH ===== */
+.bar-graph-bars {
+  display: flex; align-items: flex-end; gap: 2px; height: 60px;
+}
+.bar-graph-bars .bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; }
+.bar-graph-bars .bar-fill {
+  width: 100%; background: #FFE8CC; border-radius: 3px 3px 0 0;
+  transition: height 0.5s ease; min-height: 2px;
+}
+.bar-graph-bars .bar-fill.has-data {
+  background: linear-gradient(180deg, #FF9A30, #FF6A00);
+}
+
+/* ===== RECORD LIST ===== */
+.record-item {
+  display: flex; align-items: center; justify-content: space-between;
+  background: #FFF8F0; border-radius: 12px; padding: 10px 14px; margin-bottom: 8px;
+}
+.record-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: linear-gradient(135deg, #FF8C30, #FF5C00); flex-shrink: 0;
+}
+.record-name { font-size: 13px; font-weight: 700; color: #444; }
+.record-time { font-size: 11px; color: #AAA; }
+.record-protein { font-size: 15px; font-weight: 900; color: #FF7A00; }
+.record-del { background: none; border: none; color: #DDD; font-size: 18px; padding: 0 4px; }
+
+/* ===== ACHIEVEMENT ===== */
+.achievement {
+  background: linear-gradient(135deg, #4CAF50, #2E7D32);
+  border-radius: 20px; padding: 16px 20px; text-align: center;
+  color: white; margin-bottom: 16px;
+  box-shadow: 0 4px 16px rgba(76,175,80,0.3);
+  animation: popIn 0.5s ease;
+}
+
+/* ===== TANPAKU KUN ===== */
+.tanpaku-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; margin-bottom: 16px; }
+.speech-bubble {
+  background: white; border: 2.5px solid #FF7A00; border-radius: 16px;
+  padding: 6px 14px; font-size: 13px; color: #FF7A00; font-weight: 700;
+  white-space: nowrap; box-shadow: 0 2px 8px rgba(255,122,0,0.15);
+  position: relative;
+}
+.speech-bubble::after {
+  content: ''; position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%);
+  border-left: 8px solid transparent; border-right: 8px solid transparent;
+  border-top: 10px solid #FF7A00;
+}
+.speech-bubble::before {
+  content: ''; position: absolute; bottom: -7px; left: 50%; transform: translateX(-50%);
+  border-left: 7px solid transparent; border-right: 7px solid transparent;
+  border-top: 9px solid white; z-index: 1;
+}
+#tanpaku-svg { filter: drop-shadow(0 4px 8px rgba(255,122,0,0.25)); }
+.float-anim { animation: float 3s ease-in-out infinite; }
+.bounce-anim { animation: bounce 0.5s ease-in-out; }
+@keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+@keyframes bounce { 0%,100%{transform:scale(1)} 50%{transform:scale(1.15) rotate(-5deg)} }
+
+/* ===== MODALS ===== */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex; align-items: flex-end;
+  z-index: 100;
+  backdrop-filter: blur(4px);
+}
+.modal-overlay.hidden { display: none; }
+.modal-sheet {
+  background: white; border-radius: 28px 28px 0 0;
+  width: 100%; max-height: 88vh;
+  display: flex; flex-direction: column;
+  animation: slideUp 0.3s ease;
+  overflow: hidden;
+}
+@keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
+.modal-handle { display: flex; justify-content: center; padding: 12px 0 4px; }
+.modal-handle-bar { width: 40px; height: 4px; border-radius: 2px; background: #DDD; }
+.modal-body { padding: 0 20px 32px; overflow-y: auto; flex: 1; }
+.modal-title { font-size: 18px; font-weight: 900; color: #FF7A00; text-align: center; margin-bottom: 20px; }
+
+.back-btn {
+  background: none; border: none; color: #FF7A00;
+  font-size: 14px; font-weight: 700; margin-bottom: 12px;
+  display: flex; align-items: center; gap: 4px;
+}
+
+/* food choose buttons */
+.choose-btn {
+  border: none; border-radius: 16px; padding: 18px;
+  color: white; font-size: 16px; font-weight: 900;
+  width: 100%; margin-bottom: 12px;
+  display: flex; align-items: center; gap: 12px;
+  text-align: left;
+}
+.choose-btn.food-btn { background: linear-gradient(135deg, #FF8C30, #FF5C00); box-shadow: 0 4px 16px rgba(255,92,0,0.3); }
+.choose-btn.manual-btn { background: linear-gradient(135deg, #FFB830, #FF8C00); box-shadow: 0 4px 16px rgba(255,184,48,0.3); }
+.choose-btn .btn-icon { font-size: 28px; }
+.choose-btn .btn-main { font-size: 16px; font-weight: 900; }
+.choose-btn .btn-sub { font-size: 12px; opacity: 0.85; }
+
+.cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.cat-btn {
+  border: 2px solid #FFE0B0; border-radius: 14px; padding: 14px 10px;
+  background: white; text-align: center; transition: border-color 0.1s;
+}
+.cat-btn:hover { border-color: #FF7A00; }
+.cat-btn .cat-emoji { font-size: 26px; margin-bottom: 4px; }
+.cat-btn .cat-name { font-size: 12px; font-weight: 700; color: #FF7A00; }
+.cat-btn .cat-count { font-size: 11px; color: #AAA; }
+
+.food-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.food-btn {
+  border: 2px solid #FFE0B0; border-radius: 14px; padding: 12px 8px;
+  background: white; text-align: center; transition: border-color 0.1s;
+}
+.food-btn:hover { border-color: #FF7A00; }
+.food-btn .food-emoji { font-size: 28px; margin-bottom: 4px; }
+.food-btn .food-name { font-size: 11px; font-weight: 700; color: #444; line-height: 1.3; }
+.food-btn .food-protein { font-size: 11px; color: #FF7A00; font-weight: 900; margin-top: 2px; }
+
+/* food detail */
+.food-detail-header {
+  background: linear-gradient(135deg, #FFF8F0, #FFF0E0);
+  border-radius: 20px; padding: 20px; text-align: center; margin-bottom: 20px;
+  border: 2px solid #FFD580;
+}
+.food-detail-emoji { font-size: 52px; margin-bottom: 8px; }
+.food-detail-name { font-size: 18px; font-weight: 900; color: #FF7A00; }
+.food-detail-per { font-size: 13px; color: #888; }
+
+.gram-row { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+.gram-btn {
+  width: 44px; height: 44px; border-radius: 12px;
+  border: 2px solid #FFD580; background: white;
+  font-size: 22px; color: #FF7A00; font-weight: 900;
+}
+.gram-input {
+  flex: 1; text-align: center; font-size: 28px; font-weight: 900;
+  border: 2px solid #FFD580; border-radius: 12px; padding: 8px 0;
+  color: #FF7A00; outline: none; width: 100%;
+}
+
+.result-box {
+  background: linear-gradient(135deg, #FF8C30, #FF5C00);
+  border-radius: 16px; padding: 16px; text-align: center; margin-bottom: 20px; color: white;
+}
+.result-box .result-label { font-size: 13px; opacity: 0.9; }
+.result-box .result-val { font-size: 36px; font-weight: 900; }
+
+.save-btn {
+  width: 100%; padding: 16px; border: none; border-radius: 16px;
+  background: linear-gradient(135deg, #FF8C30, #FF5C00); color: white;
+  font-size: 16px; font-weight: 900; box-shadow: 0 4px 16px rgba(255,92,0,0.3);
+}
+.save-btn:disabled { background: #EEE; color: #AAA; box-shadow: none; }
+
+.field-label { font-size: 14px; font-weight: 700; color: #666; margin-bottom: 8px; }
+.text-input {
+  width: 100%; border: 2px solid #FFD580; border-radius: 12px; padding: 12px 16px;
+  font-size: 16px; outline: none; margin-bottom: 16px;
+}
+
+/* ===== QUOTE MODAL ===== */
+#quote-modal .modal-overlay-center {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+  display: flex; align-items: center; justify-content: center; z-index: 200; padding: 24px;
+}
+#quote-modal .quote-card {
+  background: white; border-radius: 28px; padding: 32px;
+  max-width: 320px; width: 100%; text-align: center;
+  animation: popIn 0.3s cubic-bezier(0.175,0.885,0.32,1.275);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+}
+@keyframes popIn { from{transform:scale(0.5);opacity:0} to{transform:scale(1);opacity:1} }
+.quote-icon { font-size: 48px; margin-bottom: 12px; }
+.quote-subtitle { font-size: 14px; color: #888; margin-bottom: 12px; }
+.quote-text { font-size: 17px; font-weight: 900; color: #FF7A00; line-height: 1.6; }
+.quote-close-btn {
+  margin-top: 24px; padding: 12px 32px;
+  background: linear-gradient(135deg, #FF8C30, #FF5C00);
+  border: none; border-radius: 14px; color: white;
+  font-size: 14px; font-weight: 900;
+}
+
+/* ===== WEIGHT SETUP ===== */
+#setup-page {
+  min-height: 100vh; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; padding: 24px;
+}
+.setup-title { font-size: 26px; font-weight: 900; color: #FF7A00; margin: 16px 0 8px; font-family: 'Kosugi Maru', sans-serif; }
+.setup-sub { font-size: 14px; color: #888; margin-bottom: 28px; text-align: center; line-height: 1.6; }
+.setup-card { background: white; border-radius: 24px; padding: 28px; width: 100%; max-width: 320px; box-shadow: 0 8px 32px rgba(255,122,0,0.15); }
+.setup-card-title { font-size: 15px; font-weight: 700; color: #666; text-align: center; margin-bottom: 16px; }
+.weight-display { font-size: 52px; font-weight: 900; color: #FF7A00; text-align: center; line-height: 1; }
+.weight-unit { font-size: 14px; color: #AAA; text-align: center; margin-bottom: 8px; }
+.weight-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.weight-btn { width: 52px; height: 52px; border-radius: 14px; border: 2px solid #FFD580; background: white; font-size: 24px; color: #FF7A00; font-weight: 900; }
+input[type=range] { width: 100%; accent-color: #FF7A00; margin-bottom: 16px; }
+.goal-preview { background: #FFF8F0; border-radius: 14px; padding: 14px; margin-bottom: 20px; border: 2px solid #FFE0B0; text-align: center; }
+.goal-preview .gp-label { font-size: 13px; color: #888; }
+.goal-preview .gp-val { font-size: 30px; font-weight: 900; color: #FF7A00; }
+.goal-preview .gp-unit { font-size: 11px; color: #AAA; }
+.start-btn { width: 100%; padding: 16px; border: none; border-radius: 16px; background: linear-gradient(135deg, #FF8C30, #FF5C00); color: white; font-size: 16px; font-weight: 900; box-shadow: 0 4px 16px rgba(255,92,0,0.3); }
+
+/* ===== CALENDAR ===== */
+.cal-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.cal-nav-btn { background: none; border: none; font-size: 22px; color: #FF7A00; padding: 4px 8px; }
+.cal-month-label { font-weight: 900; font-size: 16px; color: #FF7A00; }
+.cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 2px; }
+.cal-dow { text-align: center; font-size: 11px; font-weight: 700; padding: 4px 0; }
+.cal-day {
+  border: 2px solid transparent; border-radius: 10px; background: white;
+  padding: 4px 2px; min-height: 46px; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; gap: 1px;
+  transition: background 0.1s;
+}
+.cal-day.today { border-color: #FFB830; background: #FFFAF0; }
+.cal-day.selected { border-color: #FF7A00; background: #FFF0E0; }
+.cal-day.has-data { background: #FFF8F0; }
+.cal-day .day-num { font-size: 13px; font-weight: 600; color: #333; }
+.cal-day.today .day-num { font-weight: 900; }
+.cal-day .day-g { font-size: 9px; color: #FF7A00; font-weight: 700; }
+.cal-day .day-dot { width: 6px; height: 6px; border-radius: 50%; background: #FF7A00; }
+.cal-day .sun { color: #FF6B6B; }
+.cal-day .sat { color: #6B9FFF; }
+.cal-day-empty { min-height: 46px; }
+
+/* ===== HEADER ===== */
+.home-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.header-title { font-size: 22px; font-weight: 900; color: #FF7A00; font-family: 'Kosugi Maru', sans-serif; }
+.header-date { font-size: 12px; color: #AAA; }
+.weight-tag { background: #FFF0E0; border: 2px solid #FFD580; border-radius: 12px; padding: 6px 12px; font-size: 12px; color: #FF7A00; font-weight: 700; }
+
+/* nums above bar */
+.protein-nums { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 8px; }
+.protein-now { font-size: 40px; font-weight: 900; color: #FF7A00; line-height: 1; }
+.protein-now-g { font-size: 16px; color: #AAA; margin-left: 2px; }
+.protein-goal-wrap { text-align: right; }
+.protein-goal-label { font-size: 12px; color: #AAA; }
+.protein-goal-val { font-size: 22px; font-weight: 900; color: #FFB830; }
+
+.empty-msg { text-align: center; color: #CCC; padding: 16px 0; font-size: 14px; line-height: 2; }
+```
+
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ===== SETUP PAGE ===== -->
+
+  <div id="setup-page">
+    <div class="tanpaku-wrap">
+      <div class="speech-bubble" id="setup-bubble">はじめまして！</div>
+      <svg id="tanpaku-svg" width="72" height="88" viewBox="0 0 72 88" class="float-anim">
+        <ellipse cx="36" cy="50" rx="28" ry="34" fill="#FFF8F0" stroke="#FFD580" stroke-width="2.5"/>
+        <ellipse cx="26" cy="36" rx="8" ry="10" fill="white" opacity="0.6"/>
+        <circle cx="36" cy="52" r="16" fill="#FFB830"/>
+        <circle cx="36" cy="52" r="13" fill="#FFC840"/>
+        <circle cx="30" cy="47" r="4" fill="#FFD860" opacity="0.7"/>
+        <circle cx="30" cy="47" r="4" fill="white"/>
+        <circle cx="42" cy="47" r="4" fill="white"/>
+        <circle cx="31.5" cy="47.5" r="2.5" fill="#333"/>
+        <circle cx="43.5" cy="47.5" r="2.5" fill="#333"/>
+        <circle cx="32.5" cy="46.5" r="1" fill="white"/>
+        <circle cx="44.5" cy="46.5" r="1" fill="white"/>
+        <path d="M28 57 Q36 64 44 57" stroke="#B85000" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <path d="M8 52 Q4 46 10 44" stroke="#FFB830" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <path d="M64 52 Q68 46 62 44" stroke="#FFB830" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <ellipse cx="24" cy="55" rx="5" ry="3" fill="#FFB0A0" opacity="0.5"/>
+        <ellipse cx="48" cy="55" rx="5" ry="3" fill="#FFB0A0" opacity="0.5"/>
+      </svg>
+    </div>
+    <div class="setup-title">今日のたんぱく 🥚</div>
+    <div class="setup-sub">体重からあなたに必要な<br>タンパク質量を計算します！</div>
+    <div class="setup-card">
+      <div class="setup-card-title">体重を入力してください</div>
+      <div class="weight-row">
+        <button class="weight-btn" id="weight-minus">−</button>
+        <div style="flex:1">
+          <div class="weight-display" id="weight-display">60</div>
+          <div class="weight-unit">kg</div>
+        </div>
+        <button class="weight-btn" id="weight-plus">＋</button>
+      </div>
+      <input type="range" id="weight-range" min="30" max="200" value="60">
+      <div class="goal-preview">
+        <div class="gp-label">目標タンパク質量（体重×1.6g）</div>
+        <div class="gp-val" id="goal-preview-val">96</div>
+        <div class="gp-unit">g / 1日</div>
+      </div>
+      <button class="start-btn" id="start-btn">はじめる！💪</button>
+    </div>
+  </div>
+
+  <!-- ===== MAIN APP (hidden until setup done) ===== -->
+
+  <div id="main-app" style="display:none">
+
+```
+<!-- HOME PAGE -->
+<div class="page active" id="page-home">
+  <div class="home-header">
+    <div>
+      <div class="header-title">今日のたんぱく🥚</div>
+      <div class="header-date" id="today-label"></div>
+    </div>
+    <button class="weight-tag" id="weight-tag-btn">⚙️ <span id="weight-tag-val">60</span>kg</button>
+  </div>
+
+  <!-- Tanpaku-kun -->
+  <div class="tanpaku-wrap">
+    <div class="speech-bubble" id="home-bubble">ムキムキ〜！</div>
+    <svg id="home-tanpaku" width="72" height="88" viewBox="0 0 72 88" class="float-anim">
+      <ellipse cx="36" cy="50" rx="28" ry="34" fill="#FFF8F0" stroke="#FFD580" stroke-width="2.5"/>
+      <ellipse cx="26" cy="36" rx="8" ry="10" fill="white" opacity="0.6"/>
+      <circle cx="36" cy="52" r="16" fill="#FFB830"/>
+      <circle cx="36" cy="52" r="13" fill="#FFC840"/>
+      <circle cx="30" cy="47" r="4" fill="#FFD860" opacity="0.7"/>
+      <circle cx="30" cy="47" r="4" fill="white"/>
+      <circle cx="42" cy="47" r="4" fill="white"/>
+      <circle cx="31.5" cy="47.5" r="2.5" fill="#333"/>
+      <circle cx="43.5" cy="47.5" r="2.5" fill="#333"/>
+      <circle cx="32.5" cy="46.5" r="1" fill="white"/>
+      <circle cx="44.5" cy="46.5" r="1" fill="white"/>
+      <path d="M28 57 Q36 64 44 57" stroke="#B85000" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <path d="M8 52 Q4 46 10 44" stroke="#FFB830" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <path d="M64 52 Q68 46 62 44" stroke="#FFB830" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <ellipse cx="24" cy="55" rx="5" ry="3" fill="#FFB0A0" opacity="0.5"/>
+      <ellipse cx="48" cy="55" rx="5" ry="3" fill="#FFB0A0" opacity="0.5"/>
+    </svg>
+  </div>
+
+  <!-- Main progress card -->
+  <div class="card">
+    <div class="protein-nums">
+      <div><span class="protein-now" id="today-total-disp">0</span><span class="protein-now-g">g</span></div>
+      <div class="protein-goal-wrap">
+        <div class="protein-goal-label">目標</div>
+        <div class="protein-goal-val"><span id="goal-disp">96</span>g</div>
+      </div>
+    </div>
+    <div class="progress-track" style="margin-bottom:20px">
+      <div class="progress-fill" id="main-bar" style="width:0%"><div class="shimmer"></div></div>
+    </div>
+    <div class="circles-row" id="circles-row"></div>
+  </div>
+
+  <!-- Bar graph -->
+  <div class="card">
+    <div class="card-title">📊 時間別摂取量</div>
+    <div class="bar-graph-bars" id="bar-graph"></div>
+    <div style="display:flex;justify-content:space-between;margin-top:4px">
+      <span style="font-size:10px;color:#CCC">0時</span>
+      <span style="font-size:10px;color:#CCC">12時</span>
+      <span style="font-size:10px;color:#CCC">23時</span>
+    </div>
+  </div>
+
+  <!-- Today records -->
+  <div class="card">
+    <div class="card-title">📋 今日の記録</div>
+    <div id="today-records"></div>
+  </div>
+
+  <!-- Achievement -->
+  <div class="achievement" id="achievement" style="display:none">
+    <div style="font-size:32px;margin-bottom:4px">🎉</div>
+    <div style="font-size:18px;font-weight:900">目標達成！</div>
+    <div style="font-size:13px;opacity:.9">今日もよく頑張りました！</div>
+  </div>
+</div>
+
+<!-- CALENDAR PAGE -->
+<div class="page" id="page-calendar">
+  <div style="font-size:20px;font-weight:900;color:#FF7A00;margin-bottom:16px;font-family:'Kosugi Maru',sans-serif">📅 カレンダー</div>
+  <div class="card" id="cal-card">
+    <div class="cal-nav">
+      <button class="cal-nav-btn" id="cal-prev">‹</button>
+      <span class="cal-month-label" id="cal-month-label"></span>
+      <button class="cal-nav-btn" id="cal-next">›</button>
+    </div>
+    <div class="cal-grid" id="cal-dow-row"></div>
+    <div id="cal-body"></div>
+  </div>
+  <div class="card" id="cal-detail" style="display:none">
+    <div id="cal-detail-content"></div>
+  </div>
+</div>
+```
+
+  </div><!-- /main-app -->
+
+  <!-- ===== BOTTOM NAV ===== -->
+
+  <div id="bottom-nav" style="display:none">
+    <button class="nav-btn active" id="nav-home" onclick="showPage('home')">
+      <span class="icon">🏠</span>
+      <span class="label">ホーム</span>
+    </button>
+    <button id="center-btn" onclick="openRecordModal()">
+      <div class="btn-egg">🥚</div>
+      <div class="btn-label">たんぱく</div>
+    </button>
+    <button class="nav-btn" id="nav-cal" onclick="showPage('calendar')">
+      <span class="icon">📅</span>
+      <span class="label">カレンダー</span>
+    </button>
+  </div>
+
+  <!-- ===== RECORD MODAL ===== -->
+
+  <div class="modal-overlay hidden" id="record-modal" onclick="handleOverlayClick(event,'record-modal')">
+    <div class="modal-sheet">
+      <div class="modal-handle"><div class="modal-handle-bar"></div></div>
+      <div class="modal-body">
+        <div class="modal-title">🍽️ タンパク質を記録</div>
+        <div id="record-modal-content"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== QUOTE MODAL ===== -->
+
+  <div id="quote-modal" style="display:none">
+    <div class="modal-overlay-center" onclick="closeQuote()">
+      <div class="quote-card" onclick="event.stopPropagation()">
+        <div class="quote-icon">💪</div>
+        <div class="quote-subtitle">今日の名言</div>
+        <div class="quote-text" id="quote-text"></div>
+        <button class="quote-close-btn" onclick="closeQuote()">よし、やるぞ！</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /app -->
+
+<script>
+// ===========================
+// DATA
+// ===========================
+const FOOD_LIST = {
+  "肉類": [
+    {name:"鶏ささみ",protein:23.9,emoji:"🐔"},
+    {name:"鶏むね肉（皮なし）",protein:23.3,emoji:"🐔"},
+    {name:"鶏もも肉（皮なし）",protein:19.0,emoji:"🍗"},
+    {name:"牛もも肉",protein:21.3,emoji:"🥩"},
+    {name:"牛サーロイン",protein:17.4,emoji:"🥩"},
+    {name:"牛ヒレ",protein:20.5,emoji:"🥩"},
+    {name:"豚ヒレ",protein:22.2,emoji:"🐷"},
+    {name:"豚もも肉",protein:20.5,emoji:"🐷"},
+    {name:"豚ロース",protein:19.3,emoji:"🐷"},
+    {name:"豚ばら肉",protein:14.4,emoji:"🐷"},
+    {name:"羊肉（ロース）",protein:18.0,emoji:"🐑"},
+    {name:"馬肉",protein:20.1,emoji:"🐴"},
+    {name:"生ハム",protein:24.0,emoji:"🍖"},
+    {name:"ロースハム",protein:16.5,emoji:"🍖"},
+    {name:"ウインナー",protein:13.2,emoji:"🌭"},
+    {name:"ベーコン",protein:12.9,emoji:"🥓"},
+    {name:"焼き鳥（もも）",protein:16.0,emoji:"🍢"},
+    {name:"ローストビーフ",protein:21.7,emoji:"🥩"},
+    {name:"サラダチキン",protein:24.0,emoji:"🥗"},
+    {name:"レバー（豚）",protein:20.4,emoji:"🫀"},
+  ],
+  "魚介類": [
+    {name:"まぐろ（赤身）",protein:26.4,emoji:"🐟"},
+    {name:"かつお（春）",protein:25.8,emoji:"🐠"},
+    {name:"焼鮭",protein:24.3,emoji:"🐟"},
+    {name:"さば缶（水煮）",protein:20.9,emoji:"🐟"},
+    {name:"ぶり",protein:21.4,emoji:"🐟"},
+    {name:"さんま",protein:18.5,emoji:"🐡"},
+    {name:"あじ",protein:19.7,emoji:"🐡"},
+    {name:"めかじき",protein:19.0,emoji:"🐡"},
+    {name:"いわし",protein:19.2,emoji:"🐟"},
+    {name:"たい",protein:18.1,emoji:"🐠"},
+    {name:"えび（車えび）",protein:21.6,emoji:"🦐"},
+    {name:"いか",protein:18.1,emoji:"🦑"},
+    {name:"たこ",protein:16.4,emoji:"🐙"},
+    {name:"ほたて（生）",protein:13.5,emoji:"🐚"},
+    {name:"しらす干し",protein:40.5,emoji:"🐟"},
+    {name:"うなぎ蒲焼",protein:23.0,emoji:"🐍"},
+    {name:"あさり",protein:6.0,emoji:"🐚"},
+    {name:"しじみ",protein:7.5,emoji:"🐚"},
+    {name:"ツナ缶（油漬け）",protein:17.7,emoji:"🥫"},
+    {name:"たら",protein:17.6,emoji:"🐟"},
+  ],
+  "卵・乳製品": [
+    {name:"鶏卵（生）",protein:12.2,emoji:"🥚"},
+    {name:"卵白",protein:10.1,emoji:"🥚"},
+    {name:"卵黄",protein:16.1,emoji:"🥚"},
+    {name:"牛乳",protein:3.3,emoji:"🥛"},
+    {name:"ヨーグルト（無糖）",protein:3.6,emoji:"🫙"},
+    {name:"ギリシャヨーグルト",protein:10.0,emoji:"🫙"},
+    {name:"プロセスチーズ",protein:22.7,emoji:"🧀"},
+    {name:"カマンベールチーズ",protein:19.1,emoji:"🧀"},
+    {name:"クリームチーズ",protein:8.2,emoji:"🧀"},
+    {name:"モッツァレラチーズ",protein:18.4,emoji:"🧀"},
+    {name:"パルメザンチーズ",protein:44.0,emoji:"🧀"},
+    {name:"脱脂粉乳",protein:34.0,emoji:"🥛"},
+    {name:"生クリーム",protein:2.0,emoji:"🍦"},
+    {name:"プロテイン（粉末）",protein:75,emoji:"💪"},
+  ],
+  "豆類": [
+    {name:"納豆",protein:16.5,emoji:"🫘"},
+    {name:"木綿豆腐",protein:7.0,emoji:"🫙"},
+    {name:"絹ごし豆腐",protein:5.3,emoji:"🫙"},
+    {name:"豆乳",protein:3.6,emoji:"🥛"},
+    {name:"おから",protein:6.1,emoji:"🫘"},
+    {name:"厚揚げ",protein:10.7,emoji:"🍱"},
+    {name:"油揚げ",protein:18.6,emoji:"🍱"},
+    {name:"蒸し大豆",protein:16.0,emoji:"🫘"},
+    {name:"きな粉",protein:35.5,emoji:"🫘"},
+    {name:"高野豆腐（乾燥）",protein:50.2,emoji:"🫙"},
+    {name:"小豆（ゆで）",protein:7.0,emoji:"🫘"},
+  ],
+  "穀物・麺類": [
+    {name:"白米（炊飯後）",protein:2.5,emoji:"🍚"},
+    {name:"玄米（炊飯後）",protein:2.8,emoji:"🍚"},
+    {name:"食パン",protein:8.9,emoji:"🍞"},
+    {name:"パスタ（乾）",protein:13.0,emoji:"🍝"},
+    {name:"うどん（ゆで）",protein:2.6,emoji:"🍜"},
+    {name:"そば（ゆで）",protein:4.8,emoji:"🍜"},
+    {name:"オートミール",protein:13.7,emoji:"🥣"},
+    {name:"餅",protein:4.0,emoji:"🍡"},
+    {name:"中華麺（生）",protein:8.6,emoji:"🍜"},
+    {name:"ベーグル",protein:10.0,emoji:"🥯"},
+    {name:"クロワッサン",protein:7.9,emoji:"🥐"},
+  ],
+  "野菜・果物・ナッツ": [
+    {name:"ブロッコリー",protein:5.4,emoji:"🥦"},
+    {name:"枝豆",protein:11.7,emoji:"🌿"},
+    {name:"ほうれん草",protein:2.2,emoji:"🥬"},
+    {name:"アスパラガス",protein:2.6,emoji:"🌱"},
+    {name:"とうもろこし",protein:3.6,emoji:"🌽"},
+    {name:"アボカド",protein:2.5,emoji:"🥑"},
+    {name:"ジャガイモ",protein:1.8,emoji:"🥔"},
+    {name:"さつまいも",protein:1.2,emoji:"🍠"},
+    {name:"アーモンド",protein:19.6,emoji:"🌰"},
+    {name:"くるみ",protein:14.6,emoji:"🌰"},
+    {name:"ピーナッツ",protein:26.5,emoji:"🥜"},
+    {name:"カシューナッツ",protein:19.8,emoji:"🌰"},
+    {name:"ピスタチオ",protein:17.4,emoji:"🌰"},
+    {name:"バナナ",protein:1.1,emoji:"🍌"},
+  ],
+  "料理・加工品": [
+    {name:"牛丼",protein:5.5,emoji:"🍛"},
+    {name:"カレーライス",protein:4.5,emoji:"🍛"},
+    {name:"オムライス",protein:5.8,emoji:"🍳"},
+    {name:"親子丼",protein:7.0,emoji:"🍚"},
+    {name:"チャーハン",protein:6.0,emoji:"🍚"},
+    {name:"ハンバーグ",protein:13.0,emoji:"🍔"},
+    {name:"餃子",protein:6.4,emoji:"🥟"},
+    {name:"ちくわ",protein:12.2,emoji:"🍢"},
+    {name:"かまぼこ",protein:12.0,emoji:"🍣"},
+    {name:"唐揚げ",protein:14.0,emoji:"🍗"},
+  ],
+};
+
+const QUOTES = [
+  "タンパク質がある、ゆえに我あり。","タンパク質を抱け。","賽は投げられた。そしてタンパク質は摂取された。",
+  "タンパク質は力なり。","筋肉は一日にして成らず。","我、タンパク質を食す。ゆえに我、肥大す。",
+  "筋肉は裏切らない。","叩け、さらば開かれん（バルクの扉が）。","タンパク質こそが、人生の目的である。",
+  "最大多数の最大タンパク質。","汝の筋肉を愛せよ。","考えるな、タンパク質を摂れ。",
+  "下を見るな。上を向いて懸垂しろ。","筋肉よ、これが停滞期だ。","筋肉に自由を、さもなくば死を。",
+  "私はタンパク質に関しては、いかなる妥協もしない。","健全なる精神は、健全なる筋肉に宿る。",
+  "もっと光を。もっとタンパク質を。","摂取すべきか、摂取せざるべきか、それが問題だ。",
+  "鳴かぬなら、食わせてみせようタンパク質。","鳴かぬなら、スクワットさせようホトトギス。",
+  "タンパク質の夜明けは近いぜよ。","敵は本能寺にあり、筋肉はジムにあり。","諸行無常。だが筋肉は不滅。",
+  "一粒のタンパク質にも、全宇宙が宿る。","案ずるより産むが易し。悩むより食うが易し。",
+  "百聞は一見に如かず。百論は一レップに如かず。","お前のタンパク質、俺が引き受ける。",
+  "諦めたら、そこでバルクアップ終了ですよ。","筋肉王に、俺はなる！","タンパク質は、まだある。",
+  "逃げちゃダメだ、レッグデイから。","背中の筋肉は、語る。","お前はもう、パンプアップしている。",
+  "真実はいつも一つ。タンパク質は常に必要。","月に代わって、筋肉痛よ！",
+  "愛とは、互いに見つめ合うことではなく、同じタンパク質を分かち合うことだ。",
+  "筋肉は最高のファッションである。","昨日の自分より、今日のタンパク質量。",
+  "タンパク質、それは甘美な毒（※ただし筋肉には良薬）。","失敗はタンパク質不足の元。",
+  "夢を見るなら、バルクした自分を夢見ろ。","タンパク質は、歩いてこない。だから歩いて買いに行く。",
+  "筋肉は嘘をつかない。","世界はタンパク質で回っている。","追い込んだ数だけ、強くなれるよ。",
+  "私の血にはタンパク質が流れている。","限界を超えた先に、新しいプロテインが待っている。",
+  "ささみを愛する者に、筋肉は微笑む。","シェイカーを振る音は、勝利への鼓動。",
+  "明日やろうは、カタボリック。","筋肉は沈黙の臓器、だがその形は雄弁だ。",
+  "幸福とは、タンパク質を消化することだ。","ダンベルは友だち、怖くないよ。",
+  "鏡の中の自分に、問いかけろ。「タンパク質、足りてるか？」","プロテインは、飲む点滴である。",
+  "スクワットは、全宇宙への敬意。","上腕二頭筋は、自己紹介代わり。","バルクは一瞬、筋肉は一生。",
+  "タンパク質を信じろ、自分を信じろ。","汗は筋肉の涙、プロテインは筋肉の笑顔。",
+  "食事もトレーニングの一環。","コンビニは、タンパク質の補給基地。",
+  "重いものを持ち上げる、ただそれだけの美学。","筋肉は、最高の貯金。","休息という名の、筋肉育成タイム。",
+  "肩にちっちゃい重機乗せてんのかい。","腹筋が割れているのではない、浮き出ているのだ。",
+  "デッドリフトは、大地への愛。","タンパク質は、裏切らない。","プロテインの粉は、魔法の粉。",
+  "胸板は、人生の厚み。","ベンチプレスは、魂の重み。","全てを捨てても、タンパク質だけは離すな。",
+  "今日もいいパンプ、ありがとう。","筋肉は、神が与えた最高の粘土。","血管の浮き沈みに、物語がある。",
+  "プロテインを飲む姿、それこそが芸術。","筋肉は、努力を可視化したもの。","広背筋は、空を飛ぶための翼。",
+  "筋肉の数だけ、幸せがある。","筋肉があるから、優しくなれる。","筋トレは、自分との対話。",
+  "タンパク質摂取、それは自分へのギフト。","筋肉、それは究極の自己責任。","この世のすべては、タンパク質でできている。",
+];
+
+const TANPAKU_MSGS = ["ムキムキ〜！","たんぱくたんぱく〜！","食トレしてる？","ささみ食べた？","タンパク質補給！"];
+
+// ===========================
+// STATE
+// ===========================
+const STORAGE_KEY = "tanpaku_data_v2";
+let state = {weight: null, records: {}};
+
+function loadState() {
+  try { const s = localStorage.getItem(STORAGE_KEY); if(s) state = JSON.parse(s); } catch(e){}
+}
+function saveState() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e){}
+}
+
+function todayStr() {
+  const d = new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function formatTime(iso) {
+  const d = new Date(iso);
+  return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+}
+
+// ===========================
+// SETUP PAGE
+// ===========================
+let setupWeight = 60;
+function initSetup() {
+  updateSetupUI();
+  document.getElementById('weight-minus').onclick = ()=>{ setupWeight=Math.max(30,setupWeight-1); updateSetupUI(); };
+  document.getElementById('weight-plus').onclick  = ()=>{ setupWeight=Math.min(200,setupWeight+1); updateSetupUI(); };
+  document.getElementById('weight-range').oninput = e=>{ setupWeight=parseInt(e.target.value); updateSetupUI(); };
+  document.getElementById('start-btn').onclick = ()=>{
+    state.weight = setupWeight;
+    saveState();
+    document.getElementById('setup-page').style.display='none';
+    document.getElementById('main-app').style.display='block';
+    document.getElementById('bottom-nav').style.display='flex';
+    initMainApp();
+  };
+}
+function updateSetupUI() {
+  document.getElementById('weight-display').textContent = setupWeight;
+  document.getElementById('weight-range').value = setupWeight;
+  document.getElementById('goal-preview-val').textContent = Math.round(setupWeight*1.6);
+}
+
+// ===========================
+// MAIN APP
+// ===========================
+let currentPage = 'home';
+let msgIdx = 0;
+let calYear, calMonth, calSelectedDay = null;
+
+function initMainApp() {
+  // header
+  document.getElementById('weight-tag-val').textContent = state.weight;
+  document.getElementById('weight-tag-btn').onclick = ()=>{
+    state.weight = null; saveState();
+    document.getElementById('main-app').style.display='none';
+    document.getElementById('bottom-nav').style.display='none';
+    document.getElementById('setup-page').style.display='flex';
+    setupWeight = 60; updateSetupUI();
+  };
+
+  // today label
+  const now = new Date();
+  const opts = {year:'numeric',month:'long',day:'numeric',weekday:'short'};
+  document.getElementById('today-label').textContent = now.toLocaleDateString('ja-JP',opts);
+
+  // tanpaku msg rotation
+  setInterval(()=>{
+    msgIdx=(msgIdx+1)%TANPAKU_MSGS.length;
+    document.getElementById('home-bubble').textContent = TANPAKU_MSGS[msgIdx];
+  }, 3000);
+
+  // calendar init
+  calYear = now.getFullYear(); calMonth = now.getMonth();
+  document.getElementById('cal-prev').onclick = ()=>{ calMonth--; if(calMonth<0){calMonth=11;calYear--;} renderCalendar(); };
+  document.getElementById('cal-next').onclick = ()=>{ calMonth++; if(calMonth>11){calMonth=0;calYear++;} renderCalendar(); };
+
+  renderHome();
+  renderCalendar();
+}
+
+function showPage(p) {
+  document.getElementById('page-home').classList.toggle('active', p==='home');
+  document.getElementById('page-calendar').classList.toggle('active', p==='calendar');
+  document.getElementById('nav-home').classList.toggle('inactive', p!=='home');
+  document.getElementById('nav-cal').classList.toggle('inactive', p!=='calendar');
+  currentPage = p;
+  if(p==='calendar') renderCalendar();
+}
+
+// ===========================
+// HOME RENDER
+// ===========================
+function renderHome() {
+  const today = todayStr();
+  const records = state.records[today] || [];
+  const total = records.reduce((s,r)=>s+r.protein,0);
+  const goal = Math.round(state.weight*1.6);
+  const remaining = Math.max(0, goal-total);
+  const pct = Math.min(total/goal,1);
+
+  document.getElementById('goal-disp').textContent = goal;
+  document.getElementById('today-total-disp').textContent = Math.round(total);
+
+  // progress bar
+  const bar = document.getElementById('main-bar');
+  bar.style.width = (pct*100)+'%';
+  bar.classList.toggle('done', pct>=1);
+
+  // circles
+  document.getElementById('circles-row').innerHTML = buildCircle(total,goal,'#FF7A00','摂取済み','目標 '+goal+'g')
+    + buildCircle(remaining,goal,'#FFB830','残り必要量',remaining===0?'🎉 達成！':'あと '+Math.round(remaining)+'g');
+
+  // bar graph
+  const byHour = {};
+  records.forEach(r=>{
+    const h=new Date(r.time).getHours();
+    byHour[h]=(byHour[h]||0)+r.protein;
+  });
+  const maxV = Math.max(goal/3,...Object.values(byHour),1);
+  let barsHtml='';
+  for(let h=0;h<24;h++){
+    const v=byHour[h]||0;
+    const hPx = v ? Math.round((v/maxV)*50) : 2;
+    barsHtml+=`<div class="bar-col"><div class="bar-fill${v?' has-data':''}" style="height:${hPx}px"></div></div>`;
+  }
+  document.getElementById('bar-graph').innerHTML=barsHtml;
+
+  // records
+  const recEl = document.getElementById('today-records');
+  if(records.length===0){
+    recEl.innerHTML='<div class="empty-msg">まだ記録がありません<br>🥚</div>';
+  } else {
+    recEl.innerHTML = [...records].reverse().map(r=>`
+      <div class="record-item">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="record-dot"></div>
+          <div>
+            <div class="record-name">${r.name}</div>
+            <div class="record-time">${formatTime(r.time)}</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="record-protein">+${r.protein.toFixed(1)}g</span>
+          <button class="record-del" onclick="deleteRecord(${r.id})">×</button>
+        </div>
+      </div>`).join('');
+  }
+
+  // achievement
+  document.getElementById('achievement').style.display = pct>=1 ? 'block' : 'none';
+}
+
+function buildCircle(val,max,color,label,sub) {
+  const size=120, r=(size-16)/2, circ=2*Math.PI*r;
+  const pct=Math.min(val/max,1), offset=circ*(1-pct);
+  return `<div class="circle-wrap">
+    <div style="position:relative;width:${size}px;height:${size}px">
+      <svg width="${size}" height="${size}" style="transform:rotate(-90deg)">
+        <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="#FFE8CC" stroke-width="10"/>
+        <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="${color}" stroke-width="10"
+          stroke-dasharray="${circ}" stroke-dashoffset="${offset}" stroke-linecap="round"
+          style="transition:stroke-dashoffset .8s ease"/>
+      </svg>
+      <div class="circle-inner">
+        <span class="circle-val">${Math.round(val)}</span>
+        <span class="circle-unit">g</span>
+      </div>
+    </div>
+    <div class="circle-label">${label}</div>
+    <div class="circle-sub">${sub}</div>
+  </div>`;
+}
+
+function deleteRecord(id) {
+  const today=todayStr();
+  state.records[today]=(state.records[today]||[]).filter(r=>r.id!==id);
+  saveState(); renderHome();
+}
+
+// ===========================
+// RECORD MODAL
+// ===========================
+let recordStep='choose', recordCategory=null, recordFood=null, recordGrams=100;
+
+function openRecordModal() {
+  recordStep='choose'; recordCategory=null; recordFood=null; recordGrams=100;
+  renderRecordModal();
+  document.getElementById('record-modal').classList.remove('hidden');
+}
+function closeRecordModal() {
+  document.getElementById('record-modal').classList.add('hidden');
+}
+function handleOverlayClick(e, id) {
+  if(e.target.id===id) closeRecordModal();
+}
+
+function renderRecordModal() {
+  const el = document.getElementById('record-modal-content');
+  if(recordStep==='choose') {
+    el.innerHTML=`
+      <button class="choose-btn food-btn" onclick="recordStep='food';renderRecordModal()">
+        <span class="btn-icon">🥗</span>
+        <div><div class="btn-main">食べ物から選ぶ</div><div class="btn-sub">絵文字から選択・量を入力</div></div>
+      </button>
+      <button class="choose-btn manual-btn" onclick="recordStep='manual';renderRecordModal()">
+        <span class="btn-icon">✏️</span>
+        <div><div class="btn-main">グラム数で直接入力</div><div class="btn-sub">タンパク質量をgで入力</div></div>
+      </button>`;
+  }
+  else if(recordStep==='food' && !recordCategory) {
+    let html=`<button class="back-btn" onclick="recordStep='choose';renderRecordModal()">← 戻る</button>
+      <div style="font-size:13px;color:#999;margin-bottom:12px">カテゴリを選んでください</div>
+      <div class="cat-grid">`;
+    for(const [cat,items] of Object.entries(FOOD_LIST)) {
+      html+=`<button class="cat-btn" onclick="recordCategory='${cat}';renderRecordModal()">
+        <div class="cat-emoji">${items[0].emoji}</div>
+        <div class="cat-name">${cat}</div>
+        <div class="cat-count">${items.length}種類</div>
+      </button>`;
+    }
+    html+='</div>';
+    el.innerHTML=html;
+  }
+  else if(recordStep==='food' && recordCategory && !recordFood) {
+    const items=FOOD_LIST[recordCategory];
+    let html=`<button class="back-btn" onclick="recordCategory=null;renderRecordModal()">← ${recordCategory}</button>
+      <div class="food-grid">`;
+    items.forEach((f,i)=>{
+      html+=`<button class="food-btn" onclick="selectFood(${i})">
+        <div class="food-emoji">${f.emoji}</div>
+        <div class="food-name">${f.name}</div>
+        <div class="food-protein">${f.protein}g/100g</div>
+      </button>`;
+    });
+    html+='</div>';
+    el.innerHTML=html;
+  }
+  else if(recordStep==='food' && recordFood) {
+    const calc=(recordFood.protein*recordGrams/100).toFixed(1);
+    el.innerHTML=`
+      <button class="back-btn" onclick="recordFood=null;renderRecordModal()">← 食べ物一覧</button>
+      <div class="food-detail-header">
+        <div class="food-detail-emoji">${recordFood.emoji}</div>
+        <div class="food-detail-name">${recordFood.name}</div>
+        <div class="food-detail-per">${recordFood.protein}g / 100g あたり</div>
+      </div>
+      <div class="field-label">食べた量（g）</div>
+      <div class="gram-row">
+        <button class="gram-btn" onclick="changeGrams(-10)">−</button>
+        <input class="gram-input" type="number" id="gram-input" value="${recordGrams}" min="1" oninput="recordGrams=Math.max(1,parseInt(this.value)||1);updateCalcResult()">
+        <button class="gram-btn" onclick="changeGrams(10)">＋</button>
+      </div>
+      <div class="result-box">
+        <div class="result-label">タンパク質量</div>
+        <div class="result-val" id="calc-result">${calc}g</div>
+      </div>
+      <button class="save-btn" onclick="saveRecord()">💪 記録する！</button>`;
+  }
+  else if(recordStep==='manual') {
+    el.innerHTML=`
+      <button class="back-btn" onclick="recordStep='choose';renderRecordModal()">← 戻る</button>
+      <div class="field-label">食品名（任意）</div>
+      <input class="text-input" type="text" id="manual-name" placeholder="例：プロテインバー">
+      <div class="field-label">タンパク質量（g）</div>
+      <input class="gram-input" type="number" id="manual-g" placeholder="例：20" style="margin-bottom:20px;display:block" oninput="updateManualBtn()">
+      <button class="save-btn" id="manual-save-btn" disabled onclick="saveManual()">💪 記録する！</button>`;
+  }
+}
+
+function selectFood(idx) {
+  recordFood = FOOD_LIST[recordCategory][idx];
+  recordGrams = 100;
+  renderRecordModal();
+}
+function changeGrams(delta) {
+  recordGrams = Math.max(10, recordGrams+delta);
+  document.getElementById('gram-input').value = recordGrams;
+  updateCalcResult();
+}
+function updateCalcResult() {
+  const v = parseInt(document.getElementById('gram-input').value)||1;
+  recordGrams = Math.max(1,v);
+  const r = (recordFood.protein*recordGrams/100).toFixed(1);
+  document.getElementById('calc-result').textContent = r+'g';
+}
+function updateManualBtn() {
+  const v = parseFloat(document.getElementById('manual-g').value);
+  document.getElementById('manual-save-btn').disabled = !(v>0);
+}
+function saveRecord() {
+  const protein = parseFloat((recordFood.protein*recordGrams/100).toFixed(1));
+  addRecord(`${recordFood.name}（${recordGrams}g）`, protein);
+}
+function saveManual() {
+  const protein = parseFloat(document.getElementById('manual-g').value);
+  const name = document.getElementById('manual-name').value.trim() || '手動入力';
+  if(protein>0) addRecord(name, protein);
+}
+function addRecord(name, protein) {
+  const today=todayStr();
+  const rec = {id:Date.now(), name, protein, time:new Date().toISOString()};
+  if(!state.records[today]) state.records[today]=[];
+  state.records[today].push(rec);
+  saveState();
+  closeRecordModal();
+  // bounce tanpaku-kun
+  const svg = document.getElementById('home-tanpaku');
+  svg.classList.remove('float-anim'); svg.classList.add('bounce-anim');
+  setTimeout(()=>{ svg.classList.remove('bounce-anim'); svg.classList.add('float-anim'); },600);
+  renderHome();
+  // show quote after short delay
+  setTimeout(()=>showQuote(QUOTES[Math.floor(Math.random()*QUOTES.length)]),400);
+}
+
+// ===========================
+// QUOTE MODAL
+// ===========================
+function showQuote(q) {
+  document.getElementById('quote-text').textContent=q;
+  document.getElementById('quote-modal').style.display='block';
+  // add style for center overlay
+  const qm=document.getElementById('quote-modal');
+  if(!qm.querySelector('.modal-overlay-center')) {
+    // already in HTML
+  }
+}
+function closeQuote() {
+  document.getElementById('quote-modal').style.display='none';
+}
+
+// ===========================
+// CALENDAR
+// ===========================
+function renderCalendar() {
+  document.getElementById('cal-month-label').textContent = calYear+'年'+(calMonth+1)+'月';
+
+  // dow headers
+  const dows=['日','月','火','水','木','金','土'];
+  const colors=['#FF6B6B','#666','#666','#666','#666','#666','#6B9FFF'];
+  document.getElementById('cal-dow-row').innerHTML = dows.map((d,i)=>
+    `<div class="cal-dow" style="color:${colors[i]}">${d}</div>`).join('');
+
+  const firstDay = new Date(calYear,calMonth,1).getDay();
+  const daysInMonth = new Date(calYear,calMonth+1,0).getDate();
+  const today=new Date(), tyStr=todayStr();
+
+  let html='<div class="cal-grid">';
+  for(let i=0;i<firstDay;i++) html+='<div class="cal-day-empty"></div>';
+
+  for(let d=1;d<=daysInMonth;d++){
+    const key=calYear+'-'+String(calMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    const recs=state.records[key]||[];
+    const total=recs.reduce((s,r)=>s+r.protein,0);
+    const isToday=key===tyStr;
+    const isSel=key===calSelectedDay;
+    const dow=(firstDay+d-1)%7;
+    let cls='cal-day';
+    if(isToday) cls+=' today';
+    if(isSel) cls+=' selected';
+    if(total>0) cls+=' has-data';
+    const dc=dow===0?'#FF6B6B':dow===6?'#6B9FFF':'#333';
+    html+=`<button class="${cls}" onclick="selectCalDay('${key}')">
+      <span class="day-num" style="color:${dc}">${d}</span>
+      ${total>0?`<span class="day-g">${Math.round(total)}g</span><div class="day-dot"></div>`:''}
+    </button>`;
+  }
+  html+='</div>';
+  document.getElementById('cal-body').innerHTML=html;
+
+  if(calSelectedDay) renderCalDetail();
+}
+
+function selectCalDay(key) {
+  calSelectedDay = calSelectedDay===key ? null : key;
+  renderCalendar();
+  if(calSelectedDay) renderCalDetail();
+  else document.getElementById('cal-detail').style.display='none';
+}
+
+function renderCalDetail() {
+  const recs=state.records[calSelectedDay]||[];
+  const total=recs.reduce((s,r)=>s+r.protein,0);
+  const label=calSelectedDay.replace(/-/g,'/');
+  let html=`<div style="font-size:14px;font-weight:700;color:#FF7A00;margin-bottom:4px">${label} の記録</div>
+    <div style="font-size:22px;font-weight:900;color:#FF7A00;margin-bottom:12px">合計 ${Math.round(total)}g</div>`;
+  if(recs.length===0){
+    html+='<div style="color:#CCC;font-size:13px;text-align:center;padding:12px 0">記録なし</div>';
+  } else {
+    html+=recs.map(r=>`<div class="record-item">
+      <div><div class="record-name">${r.name}</div><div class="record-time">${formatTime(r.time)}</div></div>
+      <span class="record-protein">${r.protein.toFixed(1)}g</span>
+    </div>`).join('');
+  }
+  document.getElementById('cal-detail-content').innerHTML=html;
+  document.getElementById('cal-detail').style.display='block';
+}
+
+// ===========================
+// BOOT
+// ===========================
+loadState();
+if(state.weight) {
+  document.getElementById('setup-page').style.display='none';
+  document.getElementById('main-app').style.display='block';
+  document.getElementById('bottom-nav').style.display='flex';
+  initMainApp();
+} else {
+  initSetup();
+}
+</script>
+
+</body>
+</html>
