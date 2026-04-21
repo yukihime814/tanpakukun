@@ -740,7 +740,9 @@ function initSetup() {
   document.getElementById('weight-plus').onclick  = ()=>{ setupWeight=Math.min(200,setupWeight+1); updateSetupUI(); };
   document.getElementById('weight-range').oninput = e=>{ setupWeight=parseInt(e.target.value); updateSetupUI(); };
   document.getElementById('start-btn').onclick = ()=>{
-    state.weight = setupWeight;
+  state.weight = setupWeight;
+  state.name = document.getElementById('setup-name').value.trim() || 'あなた';
+
     saveState();
     document.getElementById('setup-page').style.display='none';
     document.getElementById('main-app').style.display='block';
