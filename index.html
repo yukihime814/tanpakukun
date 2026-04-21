@@ -300,8 +300,6 @@
 .setup-title { font-size: 26px; font-weight: 900; color: #FF7A00; margin: 16px 0 8px; font-family: 'Kosugi Maru', sans-serif; }
 .setup-sub { font-size: 14px; color: #888; margin-bottom: 28px; text-align: center; line-height: 1.6; }
 .setup-card { background: white; border-radius: 24px; padding: 28px; width: 100%; max-width: 320px; box-shadow: 0 8px 32px rgba(255,122,0,0.15); }
-<div class="field-label">ニックネーム</div>
-<input class="text-input" type="text" id="setup-name" placeholder="例：たろう" style="margin-bottom:20px">
 .setup-card-title { font-size: 15px; font-weight: 700; color: #666; text-align: center; margin-bottom: 16px; }
 .weight-display { font-size: 52px; font-weight: 900; color: #FF7A00; text-align: center; line-height: 1; }
 .weight-unit { font-size: 14px; color: #AAA; text-align: center; margin-bottom: 8px; }
@@ -386,7 +384,10 @@ input[type=range] { width: 100%; accent-color: #FF7A00; margin-bottom: 16px; }
     <div class="setup-title">今日のたんぱく 🥚</div>
     <div class="setup-sub">体重からあなたに必要な<br>タンパク質量を計算します！</div>
     <div class="setup-card">
-      <div class="setup-card-title">体重を入力してください</div>
+      <div class="setup-card-title">まずプロフィールを教えてください</div>
+      <div class="field-label">ニックネーム</div>
+      <input class="text-input" type="text" id="setup-name" placeholder="例：たろう" maxlength="10">
+      <div class="field-label" style="margin-top:4px">体重</div>
       <div class="weight-row">
         <button class="weight-btn" id="weight-minus">−</button>
         <div style="flex:1">
@@ -415,11 +416,8 @@ input[type=range] { width: 100%; accent-color: #FF7A00; margin-bottom: 16px; }
   <div class="home-header">
     <div>
       <div class="header-title">今日のたんぱく🥚</div>
-<div style="font-size:13px;font-weight:700;color:#FF7A00;margin-top:2px">
-  <span id="user-name-disp"></span>さんの記録
-</div>
-<div class="header-date" id="today-label"></div>
-
+      <div style="font-size:13px;font-weight:700;color:#FF7A00;margin-top:2px"><span id="user-name-disp"></span>さんの記録</div>
+      <div class="header-date" id="today-label"></div>
     </div>
     <button class="weight-tag" id="weight-tag-btn">⚙️ <span id="weight-tag-val">60</span>kg</button>
   </div>
@@ -744,9 +742,8 @@ function initSetup() {
   document.getElementById('weight-plus').onclick  = ()=>{ setupWeight=Math.min(200,setupWeight+1); updateSetupUI(); };
   document.getElementById('weight-range').oninput = e=>{ setupWeight=parseInt(e.target.value); updateSetupUI(); };
   document.getElementById('start-btn').onclick = ()=>{
-  state.weight = setupWeight;
-  state.name = document.getElementById('setup-name').value.trim() || 'あなた';
-
+    state.weight = setupWeight;
+    state.name = document.getElementById('setup-name').value.trim() || 'あなた';
     saveState();
     document.getElementById('setup-page').style.display='none';
     document.getElementById('main-app').style.display='block';
@@ -770,8 +767,9 @@ let calYear, calMonth, calSelectedDay = null;
 function initMainApp() {
   // header
   document.getElementById('weight-tag-val').textContent = state.weight;
+  document.getElementById('user-name-disp').textContent = state.name || 'あなた';
   document.getElementById('weight-tag-btn').onclick = ()=>{
-    state.weight = null; saveState();
+    state.weight = null; state.name = null; saveState();
     document.getElementById('main-app').style.display='none';
     document.getElementById('bottom-nav').style.display='none';
     document.getElementById('setup-page').style.display='flex';
